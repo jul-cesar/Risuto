@@ -1,8 +1,7 @@
-# BookList - Plataforma para Gestionar Listas de Libros
+# Risuto - Plataforma para Gestionar Listas de Libros
 
-BookList es una plataforma donde los usuarios pueden crear, organizar y compartir listas de libros. Puedes agregar libros a tus listas, dejarlas públicas o privadas, y permitir o deshabilitar comentarios en tus listas. 
+Risuto es una plataforma donde los usuarios pueden crear, organizar y compartir listas de libros. Puedes agregar libros a tus listas, dejarlas públicas o privadas, y permitir o deshabilitar comentarios en tus listas. 
 
-Este proyecto está diseñado para quienes aman los libros y desean organizarlos de manera sencilla, además de compartir sus lecturas con otros usuarios.
 
 
     cd booklist
