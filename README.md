@@ -17,3 +17,6 @@ Risuto es una plataforma donde los usuarios pueden crear, organizar y compartir 
 - [ ] Create a design for the UI
 - [ ] Potentially integrate AI using the Vercel SDK (if time allows)
 - [ ] Deploy the app
+
+# FIGMA
+ -> https://www.figma.com/design/Tz8xQ76SxvL1FfgLpIIEnC/Untitled?node-id=0-1&p=f&t=CY8dN2ibloKSuAIu-0
