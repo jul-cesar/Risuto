@@ -1,4 +1,3 @@
-import { create } from "domain";
 import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -91,3 +90,20 @@ export const commentRelations = relations(Comments, ({ one }) => ({
     references: [Lists.id],
   }),
 }));
+
+export type User = typeof Users.$inferSelect;
+export type NewUser = typeof Users.$inferInsert;
+
+export type Book = typeof Books.$inferSelect;
+export type NewBook = typeof Books.$inferInsert;
+
+
+export type List = typeof Lists.$inferSelect;
+export type NewList = typeof Lists.$inferInsert;
+
+
+export type ListBook = typeof ListBooks.$inferSelect;
+export type NewListBook = typeof ListBooks.$inferInsert;
+
+export type Comment = typeof Comments.$inferSelect;
+export type NewComment = typeof Comments.$inferInsert;
