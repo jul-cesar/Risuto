@@ -37,22 +37,22 @@ const getListById = (id: string): ListDetail => ({
     {
       id: "1",
       title: "El juego de Ender",
-      cover_url: "/covers/ender.jpg",
+      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
     },
     {
       id: "2",
       title: "Dune",
-      cover_url: "/covers/dune.jpg",
+      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
     },
     {
       id: "3",
       title: "Foundation",
-      cover_url: "/covers/foundation.jpg",
+      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
     },
   ],
 });
 
-const getComments = (listId: string): Comment[] => [
+const getComments = (): Comment[] => [
   {
     id: "c1",
     user: "Alice",
@@ -69,10 +69,10 @@ const getComments = (listId: string): Comment[] => [
 
 export default function ListPage({ params }: { params: { id: string } }) {
   const list = getListById(params.id);
-  const comments = getComments(params.id);
+  const comments = getComments();
 
   return (
-    <main className="flex-1 bg-gradient-to-b from-zinc-900 to-black text-white font-mono">
+    <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Cabecera de la lista */}
         <header className="space-y-2">
@@ -96,8 +96,8 @@ export default function ListPage({ params }: { params: { id: string } }) {
               No hay libros en esta lista
             </div>
           ) : (
-            <ScrollArea className="w-full pb-4">
-              <div className="flex space-x-6">
+            <ScrollArea className="w-full pb-4 overflow-visible">
+              <div className="flex space-x-6 p-4">
                 {list.books.map((book) => (
                   <Link
                     key={book.id}
@@ -127,13 +127,13 @@ export default function ListPage({ params }: { params: { id: string } }) {
 
         {/* Sección de comentarios */}
         <section>
-          <h2 className="flex items-center text-lg mb-4">
+          <h2 className="flex items-center text-lg mb-4 text-foreground">
             <MessageSquare className="w-5 h-5 mr-2" />
             Comments
           </h2>
 
           {comments.length === 0 ? (
-            <div className="h-32 flex items-center justify-center text-gray-400">
+            <div className="h-32 flex items-center justify-center text-muted-foreground">
               No hay comentarios
             </div>
           ) : (
@@ -141,9 +141,9 @@ export default function ListPage({ params }: { params: { id: string } }) {
               {comments.map((c) => (
                 <div
                   key={c.id}
-                  className="bg-zinc-800 rounded-md p-4 space-y-1"
+                  className="bg-card rounded-md p-4 space-y-1 text-card-foreground"
                 >
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {c.user} &bull;{" "}
                     {new Date(c.createdAt).toLocaleDateString()}
                   </p>

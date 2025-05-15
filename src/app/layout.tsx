@@ -11,6 +11,7 @@ import {
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { ModeToggle } from "@/components/theme-selector";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,15 +36,32 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`min-h-dvh flex flex-col ${geistSans.variable} ${geistMono.variable} font-mono bg-black text-white`}>
+        <body className={`min-h-dvh flex flex-col ${geistSans.variable} ${geistMono.variable} font-mono bg-background text-foreground`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            <header className="flex justify-around items-center px-6 py-4 h-16 border-b border-white bg-black">
-              <div className="text-lg font-bold">Risuto</div>
+            <header className="flex justify-around items-center px-6 py-4 h-16 border-b border-border bg-background-secondary">
+              {/* Logo/Navegación principal */}
+              <div className="flex items-center gap-6">
+                <Link href="/dashboard">
+                  <span className="text-lg font-bold text-foreground hover:text-muted-foreground transition-colors duration-200 cursor-pointer">
+                    Risuto
+                  </span>
+                </Link>
+
+                {/* Navegación solo para usuarios logueados */}
+                <SignedIn>
+                  <nav className="flex items-center gap-4 text-foreground">
+                    <span className="hover:text-muted-foreground transition-colors duration-200 cursor-pointer">Books</span>
+                    <span className="hover:text-muted-foreground transition-colors duration-200 cursor-pointer">Lists</span>
+                  </nav>
+                </SignedIn>
+              </div>
+
+              {/* Botones de sesión y modo */}
               <div className="flex items-center gap-4">
                 <ModeToggle />
                 <SignedOut>

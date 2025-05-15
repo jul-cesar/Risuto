@@ -9,7 +9,7 @@ const getBookById = (id: string) => ({
   author: "Dan Brown",
   synopsis:
     "Un thriller que mezcla historia, arte y religión: Robert Langdon debe descifrar un misterio oculto en pinturas renacentistas.",
-  cover_url: "/covers/da-vinci.jpg",
+  cover_url: "https://i.imgur.com/PIo43KF.jpeg",
   createdAt: "2023-05-10T14:23:00Z",
 })
 
@@ -19,7 +19,7 @@ export default function BookDetail({ params }: Props) {
   const book = getBookById(params.id)
 
   return (
-    <main className="flex-1 bg-gradient-to-b from-zinc-900 to-black text-white font-mono">
+    <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Imagen y datos principales */}
         <div className="flex flex-col md:flex-row gap-6">
@@ -41,7 +41,7 @@ export default function BookDetail({ params }: Props) {
 
         {/* Acción: agregar a lista */}
         <div className="pt-4 border-t border-white/20 flex justify-end">
-          <Button className="bg-white text-black font-mono font-bold px-6 py-2 rounded-md hover:bg-gray-200 transition">
+          <Button className="bg-primary text-primary-foreground font-mono font-bold px-6 py-2 rounded-md hover:bg-gray-200 transition">
             Add to list
           </Button>
         </div>

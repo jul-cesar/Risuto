@@ -131,7 +131,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 bg-gradient-to-b from-zinc-900 to-black text-white font-mono">
+    <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
       {/* contenedor centrado y con padding */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
@@ -153,28 +153,28 @@ export default function DashboardPage() {
               No hay libros
             </div>
           ) : (
-            <ScrollArea className="w-full pb-4">
-              <div className="flex space-x-6">
+            <ScrollArea className="w-full pb-6 overflow-visible">
+              <div className="flex space-x-6 p-2">
                 {books.map((book) => (
-                <Link
-                  key={book.id}
-                  href={`/books/${book.id}`}
-                  className="flex-shrink-0"
-                >
-                  <Card className="w-40 transition-transform transform hover:scale-105 cursor-pointer">
-                    <CardContent className="p-0 h-56 bg-zinc-800 overflow-hidden">
-                      <img
-                        src={book.cover_url}
-                        alt={book.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </CardContent>
-                    <CardFooter className="px-2 py-1">
-                      <p className="text-xs line-clamp-1">{book.title}</p>
-                    </CardFooter>
-                  </Card>
-                </Link>
-              ))}
+                  <Link
+                    key={book.id}
+                    href={`/books/${book.id}`}
+                    className="flex-shrink-0"
+                  >
+                    <Card className="w-40 transition-transform transform hover:scale-105 cursor-pointer">
+                      <CardContent className="p-0 h-56 bg-zinc-800 overflow-hidden">
+                        <img
+                          src={book.cover_url}
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </CardContent>
+                      <CardFooter className="px-2 py-1">
+                        <p className="text-xs line-clamp-1">{book.title}</p>
+                      </CardFooter>
+                    </Card>
+                  </Link>
+                ))}
               </div>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -281,8 +281,8 @@ export default function DashboardPage() {
               No hay listas
             </div>
           ) : (
-            <ScrollArea className="w-full pb-4">
-              <div className="flex space-x-6">
+            <ScrollArea className="w-full pb-6 overflow-visible">
+              <div className="flex space-x-6 p-2">
                 {lists.map((lst) => (
                   <Link
                   key={lst.id}
