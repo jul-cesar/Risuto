@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { MessageSquare } from "lucide-react";
-import { use } from "react";
+import { MessageSquare, LinkIcon } from "lucide-react";
+import { use, useState } from "react";
+import { List } from "@/db/schema";
+import { SignInButton, useAuth } from "@clerk/nextjs";
 
 type Book = {
   id: string;
@@ -21,37 +23,47 @@ type Comment = {
   createdAt: string;
 };
 
-type ListDetail = {
-  id: string;
-  title: string;
-  description: string;
+interface ListDetail extends List {
   books: Book[];
-  createdAt: string;
-};
+}
 
-const getListById = (id: string): ListDetail => ({
-  id,
-  title: "Mis lecturas de verano",
-  description: "Una lista con los libros que quiero leer estas vacaciones.",
-  createdAt: "2023-07-01",
-  books: [
-    {
-      id: "1",
-      title: "El juego de Ender",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-    },
-    {
-      id: "2",
-      title: "Dune",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-    },
-    {
-      id: "3",
-      title: "Foundation",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-    },
-  ],
-});
+const lists: ListDetail[] = [
+  {
+    id: "a",
+    title: "Mis lecturas favoritas",
+    description: "Todo lo que me encantó",
+    user_id: "user_123",
+    slug: "favoritas",
+    is_public: true,
+    comments_enabled: false,
+    createdAt: "2023-04-20",
+    updatedAt: "2023-04-22",
+    books: [
+      {
+        id: "1",
+        title: "El juego de Ender",
+        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
+      },
+      {
+        id: "2",
+        title: "Dune",
+        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
+      },
+    ],
+  },
+  {
+    id: "b",
+    title: "Lecturas secretas",
+    description: "Solo para mis ojos",
+    user_id: "user_2x42yS6hicQbB26KZMk45fmBxjB",
+    slug: "secretas",
+    is_public: false,
+    comments_enabled: true,
+    createdAt: "2023-05-10",
+    updatedAt: "2023-05-11",
+    books: [],
+  },
+];
 
 const getComments = (): Comment[] => [
   {
@@ -68,17 +80,87 @@ const getComments = (): Comment[] => [
   },
 ];
 
-export default function ListPage({params}: {params: Promise<{ id: string }>}) {
-  const { id } = use(params);
-  const list = getListById(id);
+function getListBySlugOrId(slugOrId: string): ListDetail | undefined {
+  return lists.find(
+    (list) => list.id === slugOrId || list.slug === slugOrId
+  );
+}
+
+
+export default function ListPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: slugOrId } = use(params);
+  const list = getListBySlugOrId(slugOrId);
+  const { isSignedIn, userId } = useAuth();
   const comments = getComments();
+  const isOwner = isSignedIn && userId === list?.user_id;
+  const isShared = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("shared");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const url = `${window.location.origin}/lists/${list?.id}?shared=true`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!list) {
+    return <div className="p-8">Lista no encontrada</div>;
+  }
+
+  // Bloquear acceso si privada y ni dueño ni tiene ?shared
+  if (!list.is_public && !isOwner && !isShared) {
+    return <div className="p-8">No autorizado</div>;
+  }
+
+
+  if (!list) {
+    return (
+      <main className="p-8">
+        <h1 className="text-xl font-bold">Lista no encontrada</h1>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Cabecera de la lista */}
         <header className="space-y-2">
-          <h1 className="text-3xl font-bold">{list.title}</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">{list.title}</h1>
+              {list.is_public ? (
+                isOwner ? (
+                  // Si es pública **y** el owner la ve, generamos link CON shared
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
+                  >
+                    <LinkIcon className="w-4 h-4" /> 
+                    {copied ? "Enlace copiado!" : "Compartir con link privado"}
+                  </button>
+                ) : (
+                  // Si es pública y NO es el owner, generamos link SIN shared
+                  <button
+                    onClick={async () => {
+                      const url = `${window.location.origin}/lists/${list.slug}`;
+                      await navigator.clipboard.writeText(url);
+                    }}
+                    className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
+                  >
+                    <LinkIcon className="w-4 h-4" /> Compartir
+                  </button>
+                )
+              ) : isOwner ? (
+                // Si NO es pública y es el owner, generamos link CON shared
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
+                >
+                  <LinkIcon className="w-4 h-4" /> 
+                  {copied ? "Enlace copiado!" : "Generar enlace privado"}
+                </button>
+              ) : null}
+          </div>
           <p className="text-sm text-gray-400">{list.description}</p>
           <p className="text-xs text-gray-500">
             Created: {new Date(list.createdAt).toLocaleDateString()}
@@ -128,33 +210,40 @@ export default function ListPage({params}: {params: Promise<{ id: string }>}) {
         <Separator className="border-white/20" />
 
         {/* Sección de comentarios */}
-        <section>
-          <h2 className="flex items-center text-lg mb-4 text-foreground">
-            <MessageSquare className="w-5 h-5 mr-2" />
-            Comments
-          </h2>
+        {list.comments_enabled && (
+          <section>
+            <h2 className="flex items-center text-lg mb-4">
+              <MessageSquare className="w-5 h-5 mr-2" /> Comments
+            </h2>
 
-          {comments.length === 0 ? (
-            <div className="h-32 flex items-center justify-center text-muted-foreground">
-              No hay comentarios
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {comments.map((c) => (
-                <div
-                  key={c.id}
-                  className="bg-card rounded-md p-4 space-y-1 text-card-foreground"
-                >
-                  <p className="text-xs text-muted-foreground">
-                    {c.user} &bull;{" "}
-                    {new Date(c.createdAt).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm">{c.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+            {!list.is_public && !isSignedIn ? (
+              <div className="h-32 flex items-center justify-center text-muted-foreground">
+                <SignInButton mode="modal">
+                  <button className="text-sm underline">Inicia sesión para comentar</button>
+                </SignInButton>
+              </div>
+            ) : comments.length === 0 ? (
+              <div className="h-32 flex items-center justify-center text-muted-foreground">
+                No hay comentarios
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {comments.map((c) => (
+                  <div
+                    key={c.id}
+                    className="bg-card rounded-md p-4 space-y-1 text-card-foreground"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {c.user} &bull;{" "}
+                      {new Date(c.createdAt).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm">{c.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </main>
   );
