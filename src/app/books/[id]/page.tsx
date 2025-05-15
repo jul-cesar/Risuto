@@ -1,6 +1,7 @@
 // src/app/books/[id]/page.tsx
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { use } from "react";
 
 
 const getBookById = (id: string) => ({
@@ -13,10 +14,10 @@ const getBookById = (id: string) => ({
   createdAt: "2023-05-10T14:23:00Z",
 })
 
-type Props = { params: { id: string } }
 
-export default function BookDetail({ params }: Props) {
-  const book = getBookById(params.id)
+export default function BookDetail({params}: {params: Promise<{ id: string }>}) {
+  const { id } = use(params)
+  const book = getBookById(id)
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">

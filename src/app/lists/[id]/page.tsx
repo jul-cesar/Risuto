@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
+import { use } from "react";
 
 type Book = {
   id: string;
@@ -67,8 +68,9 @@ const getComments = (): Comment[] => [
   },
 ];
 
-export default function ListPage({ params }: { params: { id: string } }) {
-  const list = getListById(params.id);
+export default function ListPage({params}: {params: Promise<{ id: string }>}) {
+  const { id } = use(params);
+  const list = getListById(id);
   const comments = getComments();
 
   return (
