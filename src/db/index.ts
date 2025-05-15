@@ -8,7 +8,6 @@ const client = createClient({
   authToken: process.env.DATABASE_AUTH_TOKEN!
 });
 
-async function seed() {
-  
-}
+//async function seed() {}
+
 export const db = drizzle({ client, schema });
