@@ -1,8 +1,9 @@
+import { createId } from '@paralleldrive/cuid2';
 import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const Users = sqliteTable("users", {
-  id: text().primaryKey().default("uuid_generate_v4()"),
+  id: text().primaryKey().$defaultFn(() => createId()),
   clerk_user_id: text().notNull(),
   name: text().notNull(),
   avatar_url: text(),
@@ -18,7 +19,7 @@ export const userRelations = relations(Users, ({ many }) => ({
 }));
 
 export const Books = sqliteTable("books", {
-  id: text().primaryKey().default("uuid_generate_v4()"),
+  id: text().primaryKey().$defaultFn(() => createId()),
   title: text().notNull(),
   author: text().notNull(),
   synopsis: text().notNull(),
@@ -29,7 +30,7 @@ export const Books = sqliteTable("books", {
 });
 
 export const Lists = sqliteTable("lists", {
-  id: text().primaryKey().default("uuid_generate_v4()"),
+  id: text().primaryKey().$defaultFn(() => createId()),
   user_id: text().notNull(),
   slug: text().default(sql`(lower(hex(randomblob(8))))`),
   title: text().notNull(),
@@ -53,7 +54,7 @@ export const listRelations = relations(Lists, ({ one }) => ({
 }));
 
 export const ListBooks = sqliteTable("list_books", {
-  id: text().primaryKey().default("uuid_generate_v4()"),
+  id: text().primaryKey().$defaultFn(() => createId()),
   list_id: text().notNull(),
   book_id: text().notNull(),
   addedAt: text("added_at")
@@ -72,7 +73,7 @@ export const listBooksRelations = relations(ListBooks, ({ one }) => ({
 }));
 
 export const Comments = sqliteTable("comments", {
-  id: text().primaryKey().default("uuid_generate_v4()"),
+  id: text().primaryKey().$defaultFn(() => createId()),
   list_id: text().notNull(),
   commenter_name: text().notNull(),
   text: text().notNull(),
