@@ -1,6 +1,13 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-export default clerkMiddleware()
+const isProtected = createRouteMatcher(["/dashboard(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  // Si la ruta coincide y no hay sesión, redirigimos al sign-in
+  if (isProtected(req)) {
+    await auth.protect(); 
+  }
+});
 
 //TODO: Check clerkDocs to add middleware to protect API routes
 // https://clerk.com/docs/references/nextjs/clerk-middleware
