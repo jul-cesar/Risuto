@@ -1,8 +1,15 @@
-import { Book } from "@/db/schema";
+import type { Book } from "@/db/schema";
 import { EmptyState } from "../empty-state";
 import { BooksCarousel } from "./book-carousel";
+import { BooksCarouselSkeleton } from "./trendings-skeleton";
 
-export function TrendingBooks({ books }: { books: Book[] }) {
+export function TrendingBooks({
+  books,
+  isLoading,
+}: {
+  books: Book[];
+  isLoading: boolean;
+}) {
   return (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
@@ -11,7 +18,9 @@ export function TrendingBooks({ books }: { books: Book[] }) {
         </div>
       </div>
 
-      {books.length === 0 ? (
+      {isLoading ? (
+        <BooksCarouselSkeleton />
+      ) : books.length === 0 ? (
         <EmptyState message="No hay libros" height="h-48" />
       ) : (
         <BooksCarousel books={books} />

@@ -10,7 +10,7 @@ import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-l
 import { MyLists } from "./components/my-lists/my-lists";
 
 export default function DashboardPage() {
-  const { data: books = [] } = useQuery({
+  const { data: books = [], isLoading: isLoadingTrendings } = useQuery({
     queryKey: ["books"],
     queryFn: async () => {
       const res = await getTrendingBooks();
@@ -19,7 +19,7 @@ export default function DashboardPage() {
   });
   const { user } = useUser();
 
-  const { data: lists = [] } = useQuery({
+  const { data: lists = [], isLoading } = useQuery({
     queryKey: ["MyLists"],
     queryFn: async () => {
       if (!user?.id) return []; // Retorna un array vacío si no hay usuario
@@ -40,12 +40,16 @@ export default function DashboardPage() {
         </header>
 
         {/* Trending books */}
-        <TrendingBooks books={books} />
+        <TrendingBooks books={books} isLoading={isLoadingTrendings} />
 
         <Separator className="border-white/20 mb-12" />
 
         {/* My lists */}
-        <MyLists lists={lists} dialogTrigger={<CreateListDialog />} />
+        <MyLists
+          lists={lists}
+          dialogTrigger={<CreateListDialog />}
+          isLoading={isLoading}
+        />
       </div>
     </main>
   );
