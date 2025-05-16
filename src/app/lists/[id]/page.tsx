@@ -4,7 +4,7 @@
 import { use, useState } from "react";
 import { Book, Comment, List } from "@/db/schema";
 import { ListDetailPage } from "./components/list-detail-page";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 
 
 interface ListDetail extends List {
@@ -56,24 +56,6 @@ const lists: ListDetail[] = [
   },
 ];
 
-const getComments = (): Comment[] => [
-  {
-    id: "c1",
-    text: "¡Me encantó Dune!",
-    createdAt: "2023-07-15T10:20:00Z",
-    updatedAt: "2023-07-15T10:20:00Z",
-    list_id: "a",
-    commenter_name: "Alice",
-  },
-  {
-    id: "c2",
-    text: "Ender es un clásico de la ciencia ficción.", 
-    createdAt: "2023-07-16T14:45:00Z", 
-    updatedAt: "2023-07-16T14:45:00Z", 
-    list_id: "a", 
-    commenter_name: "Bob",
-  },
-];
 
 function getListBySlugOrId(slugOrId: string): ListDetail | undefined {
   return lists.find(
@@ -86,10 +68,41 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
   const { id: slugOrId } = use(params);
   const list = getListBySlugOrId(slugOrId);
   const { isSignedIn, userId } = useAuth();
-  const comments = getComments();
+  const { user } = useUser()
   const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
   const isShared = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("shared");
   const [copied, setCopied] = useState(false);
+
+  const [comments, setComments] = useState<Comment[]>([
+    {
+      id: "c1",
+      text: "¡Me encantó Dune!",
+      createdAt: "2023-07-15T10:20:00Z",
+      updatedAt: "2023-07-15T10:20:00Z",
+      list_id: "a",
+      commenter_name: "Alice",
+    },
+    {
+      id: "c2",
+      text: "Ender es un clásico de la ciencia ficción.", 
+      createdAt: "2023-07-16T14:45:00Z", 
+      updatedAt: "2023-07-16T14:45:00Z", 
+      list_id: "a", 
+      commenter_name: "Bob",
+    },
+  ])
+
+  const handleAddComment = async (text: string) => {
+    const newComment = {
+      id: Date.now().toString(),
+      text,
+      commenter_name: user?.username ?? "Anónimo",
+      list_id: list?.id ?? "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setComments((prev) => [...prev, newComment]);
+  }
 
   const handleCopy = async () => {
     const url = `${window.location.origin}/lists/${list?.id}?shared=true`;
@@ -123,7 +136,8 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
       isSignedIn={!!isSignedIn}
       comments={comments}
       copied={copied}
-      handleCopy={handleCopy}
-    />
+      handleCopy={handleCopy} 
+      onAddComment={handleAddComment}    
+      />
   );
 }

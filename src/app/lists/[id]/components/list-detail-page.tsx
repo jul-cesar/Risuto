@@ -15,7 +15,8 @@ interface ListDetailPageProps {
   isSignedIn: boolean;
   comments: Comment[];
   copied: boolean;
-  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void ;
+  onAddComment: (text: string) => Promise<void>;
 }
 
 export function ListDetailPage({ 
@@ -24,7 +25,8 @@ export function ListDetailPage({
   isSignedIn, 
   comments, 
   copied, 
-  handleCopy 
+  handleCopy,
+  onAddComment
 } : ListDetailPageProps
 ) {
   return (
@@ -52,6 +54,7 @@ export function ListDetailPage({
             comments={comments} 
             isPublic={list.is_public} 
             isSignedIn={isSignedIn} 
+            onAdd={onAddComment}
           />
         )}
       </div>

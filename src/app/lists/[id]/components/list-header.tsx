@@ -18,7 +18,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
           <LinkIcon className="w-4 h-4" /> 
-          {copied ? "Enlace copiado!" : "Compartir con link privado"}
+          {copied ? "Shared link copied!" : "Share link"}
         </button>
       );
     }
@@ -33,7 +33,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
           }}
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
-          <LinkIcon className="w-4 h-4" /> Compartir
+          <LinkIcon className="w-4 h-4" /> Share
         </button>
       );
     }
@@ -46,7 +46,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
           <LinkIcon className="w-4 h-4" /> 
-          {copied ? "Enlace copiado!" : "Generar enlace privado"}
+          {copied ? "Shared link copied!" : "Generate private link"}
         </button>
       );
     }
