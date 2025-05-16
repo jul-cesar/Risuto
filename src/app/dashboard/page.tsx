@@ -1,14 +1,15 @@
 "use client"; // quitar con los fetch
 
+import { getTrendingBooks } from "@/actions/book-actions";
 import { Separator } from "@/components/ui/separator";
 import { List } from "@/db/schema";
 import { useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { TrendingBooks } from "./components/books/trending-books";
 import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-list-dialog";
 import { MyLists } from "./components/my-lists/my-lists";
 
-export const dynamic = "force-dynamic";
 export default function DashboardPage() {
   const [lists, setLists] = useState<List[]>([
     {
@@ -29,6 +30,14 @@ export default function DashboardPage() {
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [commentsEnabled, setCommentsEnabled] = useState(false);
   const [slug, setSlug] = useState("");
+
+  const { data: books = [] } = useQuery({
+    queryKey: ["books"],
+    queryFn: async () => {
+      const res = getTrendingBooks();
+      return res;
+    },
+  });
 
   const { user } = useUser();
 
@@ -63,7 +72,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Trending books */}
-        <TrendingBooks />
+        <TrendingBooks books={books} />
 
         <Separator className="border-white/20 mb-12" />
 
