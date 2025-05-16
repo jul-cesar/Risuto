@@ -161,3 +161,37 @@ export const addBookToList = async (
     };
   }
 };
+
+export const getCurrentUserLists = async (
+  userId: string
+): Promise<response<List[]>> => {
+  try {
+    if (!userId) {
+      return {
+        success: false,
+        message: "User ID is required",
+      };
+    }
+
+    const lists = await db
+      .select()
+      .from(Lists)
+      .where(eq(Lists.user_id, userId))
+      .all();
+
+    return {
+      success: true,
+      message: lists.length > 0 ? "Lists retrieved successfully" : "No lists found",
+      data: lists,
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error retrieving user lists:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the lists",
+    };
+  }
+};

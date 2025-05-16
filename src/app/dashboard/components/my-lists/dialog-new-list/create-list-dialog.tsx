@@ -1,46 +1,20 @@
+"use client";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import { ListForm } from "./list-form";
 
-interface ListFormProps {
-  title: string;
-  setTitle: (title: string) => void;
-  description: string;
-  setDescription: (description: string) => void;
-  visibility: "public" | "private";
-  setVisibility: (visibility: "public" | "private") => void;
-  commentsEnabled: boolean;
-  setCommentsEnabled: (commentsEnabled: boolean) => void;
-  slug: string;
-  setSlug: (slug: string) => void;
-  handleCreate: () => void;
-}
-
-
-export function CreateListDialog({
-  title,
-  setTitle,
-  description,
-  setDescription,
-  visibility,
-  setVisibility,
-  commentsEnabled,
-  setCommentsEnabled,
-  slug,
-  setSlug,
-  handleCreate
-} : ListFormProps
-) {
+export function CreateListDialog() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="flex items-center text-sm hover:underline space-x-1">
           <Plus className="w-5 h-5" />
@@ -55,22 +29,7 @@ export function CreateListDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <ListForm
-          title={title}
-          setTitle={setTitle}
-          description={description}
-          setDescription={setDescription}
-          visibility={visibility}
-          setVisibility={setVisibility}
-          commentsEnabled={commentsEnabled}
-          setCommentsEnabled={setCommentsEnabled}
-          slug={slug}
-          setSlug={setSlug}
-        />
-
-        <DialogFooter className="mt-6 flex justify-center">
-          <Button onClick={handleCreate}>Create</Button>
-        </DialogFooter>
+        <ListForm closeModal={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

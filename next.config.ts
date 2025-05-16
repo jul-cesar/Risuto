@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',        // Permite cualquier ruta bajo ese dominio
         search: '',             // Sin querystring obligatorio
       },
+      {
+        protocol: 'https',
+        hostname: 'images-na.ssl-images-amazon.com',
+        port: '',
+        pathname: '/**',
+        search: '',           
+      },
     ],
   },
 }
