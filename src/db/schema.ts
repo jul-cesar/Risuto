@@ -24,6 +24,7 @@ export const Books = sqliteTable("books", {
   author: text().notNull(),
   synopsis: text().notNull(),
   cover_url: text().notNull(),
+  is_trending: integer({ mode: "boolean" }).default(false),
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

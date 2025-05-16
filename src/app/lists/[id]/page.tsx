@@ -1,16 +1,14 @@
 // src/app/lists/[id]/page.tsx
 "use client";
 
-import { use, useState } from "react";
 import { Book, Comment, List } from "@/db/schema";
-import { ListDetailPage } from "./components/list-detail-page";
 import { useAuth, useUser } from "@clerk/nextjs";
-
+import { use, useState } from "react";
+import { ListDetailPage } from "./components/list-detail-page";
 
 interface ListDetail extends List {
   books: Book[];
 }
-
 
 const lists: ListDetail[] = [
   {
@@ -28,17 +26,21 @@ const lists: ListDetail[] = [
         id: "1",
         title: "El juego de Dune",
         author: "Frank Herbert",
-        synopsis: "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
+        synopsis:
+          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
         cover_url: "https://i.imgur.com/PIo43KF.jpeg",
         createdAt: "2023-05-10T14:23:00Z",
+        is_trending: false,
       },
       {
         id: "3",
         title: "Dune",
         author: "Frank Herbert",
-        synopsis: "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
+        synopsis:
+          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
         cover_url: "https://i.imgur.com/PIo43KF.jpeg",
         createdAt: "2023-05-10T14:23:00Z",
+        is_trending: false,
       },
     ],
   },
@@ -56,21 +58,23 @@ const lists: ListDetail[] = [
   },
 ];
 
-
 function getListBySlugOrId(slugOrId: string): ListDetail | undefined {
-  return lists.find(
-    (list) => list.id === slugOrId || list.slug === slugOrId
-  );
+  return lists.find((list) => list.id === slugOrId || list.slug === slugOrId);
 }
 
-
-export default function ListPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ListPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id: slugOrId } = use(params);
   const list = getListBySlugOrId(slugOrId);
   const { isSignedIn, userId } = useAuth();
-  const { user } = useUser()
+  const { user } = useUser();
   const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
-  const isShared = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("shared");
+  const isShared =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("shared");
   const [copied, setCopied] = useState(false);
 
   const [comments, setComments] = useState<Comment[]>([
@@ -84,13 +88,13 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
     },
     {
       id: "c2",
-      text: "Ender es un clásico de la ciencia ficción.", 
-      createdAt: "2023-07-16T14:45:00Z", 
-      updatedAt: "2023-07-16T14:45:00Z", 
-      list_id: "a", 
+      text: "Ender es un clásico de la ciencia ficción.",
+      createdAt: "2023-07-16T14:45:00Z",
+      updatedAt: "2023-07-16T14:45:00Z",
+      list_id: "a",
       commenter_name: "Bob",
     },
-  ])
+  ]);
 
   const handleAddComment = async (text: string) => {
     const newComment = {
@@ -102,12 +106,12 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
       updatedAt: new Date().toISOString(),
     };
     setComments((prev) => [...prev, newComment]);
-  }
+  };
 
   const handleCopy = async () => {
     const url = `${window.location.origin}/lists/${list?.id}?shared=true`;
     await navigator.clipboard.writeText(url);
-    setCopied(true)
+    setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -119,7 +123,6 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
   }
-
 
   if (!list) {
     return (
@@ -136,8 +139,8 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
       isSignedIn={!!isSignedIn}
       comments={comments}
       copied={copied}
-      handleCopy={handleCopy} 
-      onAddComment={handleAddComment}    
-      />
+      handleCopy={handleCopy}
+      onAddComment={handleAddComment}
+    />
   );
 }

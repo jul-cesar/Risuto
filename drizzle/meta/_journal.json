@@ -8,6 +8,13 @@
       "when": 1747183054620,
       "tag": "0000_natural_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1747374365928,
+      "tag": "0001_curious_gateway",
+      "breakpoints": true
     }
   ]
 }

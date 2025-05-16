@@ -1,15 +1,28 @@
+"use server";
+
+import { db } from "@/db";
+import { Book, Books } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { EmptyState } from "../empty-state";
-import { Book } from "@/db/schema";
 import { BooksCarousel } from "./book-carousel";
 
-export function TrendingBooks({ books } : { books: Book[] }) {
+export async function TrendingBooks() {
+  let books: Book[] = [];
+  try {
+    books = await db.query.Books.findMany({
+      where: eq(Books.is_trending, true),
+    });
+  } catch (error) {
+    console.error("Error fetching trending books:", error);
+  }
+
   return (
     <section className="mb-12">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center text-sm space-x-1">
+      <header className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-semibold flex items-center space-x-1">
           <span>🔥 Trending books</span>
-        </div>
-      </div>
+        </h2>
+      </header>
 
       {books.length === 0 ? (
         <EmptyState message="No hay libros" height="h-48" />
@@ -19,4 +32,3 @@ export function TrendingBooks({ books } : { books: Book[] }) {
     </section>
   );
 }
-

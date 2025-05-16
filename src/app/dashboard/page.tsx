@@ -1,76 +1,15 @@
 "use client"; // quitar con los fetch
 
-import { Separator } from "@/components/ui/separator"
-import { Book, List } from "@/db/schema";
+import { Separator } from "@/components/ui/separator";
+import { List } from "@/db/schema";
+import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { TrendingBooks } from "./components/books/trending-books";
-import { MyLists } from "./components/my-lists/my-lists";
 import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-list-dialog";
-import { useUser } from "@clerk/nextjs";
+import { MyLists } from "./components/my-lists/my-lists";
 
-
-export const dynamic = "force-dynamic" 
+export const dynamic = "force-dynamic";
 export default function DashboardPage() {
-
-  const [books] = useState<Book[]>([
-    {
-      id: "1",
-      title: "El código Da Vinci",
-      author: "Dan Brown",
-      synopsis: "Misterio en el Louvre...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-05-10",
-    },
-    {
-      id: "2",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-    {
-      id: "3",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-    {
-      id: "4",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-    {
-      id: "5",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-    {
-      id: "6",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-    {
-      id: "7",
-      title: "1984",
-      author: "George Orwell",
-      synopsis: "Distopía totalitaria...",
-      cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-      createdAt: "2023-06-01",
-    },
-  ])
-
   const [lists, setLists] = useState<List[]>([
     {
       id: "a",
@@ -83,7 +22,7 @@ export default function DashboardPage() {
       createdAt: "2023-04-20",
       updatedAt: "2023-04-22",
     },
-  ])
+  ]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -124,13 +63,13 @@ export default function DashboardPage() {
         </header>
 
         {/* Trending books */}
-        <TrendingBooks books={books} />
+        <TrendingBooks />
 
         <Separator className="border-white/20 mb-12" />
 
         {/* My lists */}
-        <MyLists 
-          lists={lists} 
+        <MyLists
+          lists={lists}
           dialogTrigger={
             <CreateListDialog
               title={title}
