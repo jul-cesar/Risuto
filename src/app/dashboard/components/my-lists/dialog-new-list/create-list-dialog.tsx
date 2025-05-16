@@ -48,7 +48,7 @@ export function CreateListDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md bg-zinc-800 rounded-lg p-6">
+      <DialogContent className="max-w-md background rounded-lg p-6">
         <DialogHeader>
           <DialogTitle className="text-center font-mono text-lg">
             Create new list

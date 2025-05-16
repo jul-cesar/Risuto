@@ -27,68 +27,87 @@ export function ListForm({
   commentsEnabled,
   setCommentsEnabled,
   slug,
-  setSlug
-} : ListFormProps
-) {
+  setSlug,
+}: ListFormProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Título */}
       <div>
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title" className="block text-sm font-medium text-foreground mb-1">
+          Title
+        </Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="My reading list"
+          placeholder="My favorite sci-fi books"
+          className="w-full"
         />
       </div>
 
+      {/* Descripción */}
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">
+          Description
+        </Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          placeholder="A list of my favorite science fiction books..."
+          placeholder="A list of my favorite sci-fi books..."
+          className="w-full"
         />
       </div>
 
+      {/* Visibilidad */}
       <div>
-        <Label className="mb-1">Visibility</Label>
+        <Label className="block text-sm font-medium text-foreground mb-1">
+          Visibility
+        </Label>
         <RadioGroup
           value={visibility}
-          onValueChange={(val) =>
-            setVisibility(val as "public" | "private")
-          }
+          onValueChange={(val) => setVisibility(val as "public" | "private")}
           className="flex space-x-4"
         >
-          <Label htmlFor="vis-public" className="flex items-center space-x-1">
+          <div className="flex items-center space-x-2">
             <RadioGroupItem id="vis-public" value="public" />
-            <span>Public</span>
-          </Label>
-          <Label htmlFor="vis-private" className="flex items-center space-x-1">
+            <Label htmlFor="vis-public" className="text-sm text-foreground">
+              Public
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
             <RadioGroupItem id="vis-private" value="private" />
-            <span>Private</span>
-          </Label>
+            <Label htmlFor="vis-private" className="text-sm text-foreground">
+              Private
+            </Label>
+          </div>
         </RadioGroup>
       </div>
 
+      {/* Comentarios */}
       <div className="flex items-center space-x-2">
         <Checkbox
           id="comments-enabled"
           checked={commentsEnabled}
           onCheckedChange={(chk) => setCommentsEnabled(!!chk)}
         />
-        <Label htmlFor="comments-enabled">Turn on comments</Label>
+        <Label htmlFor="comments-enabled" className="text-sm text-foreground">
+          Allow comments
+        </Label>
       </div>
 
+      {/* Slug */}
       <div>
-        <Label htmlFor="slug">Slug (optional)</Label>
+        <Label htmlFor="slug" className="block text-sm font-medium text-foreground mb-1">
+          Slug (optional)
+        </Label>
         <Input
           id="slug"
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
-          placeholder="my-reading-list"
+          placeholder="my-favorite-sci-fi-books"
+          className="w-full"
         />
       </div>
     </div>
