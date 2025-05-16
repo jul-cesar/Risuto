@@ -7,16 +7,16 @@ Risuto es una plataforma donde los usuarios pueden crear, organizar y compartir 
 
 - [x] Configure Database and Auth with Clerk
 - [x] Seed with fake data
-- [ ] Create a first version of the UI
+- [x] Create a first version of the UI
 - [ ] Display data
-- [ ] Scrape or fetch book data
+- [x] Scrape or fetch book data
 - [ ] Create functionality to create lists
-- [ ] Allow users to share lists
+- [x] Allow users to share lists
 - [ ] Allow users to add books to lists
 - [ ] Implement UploadThing to allow users to add a photo to lists
-- [ ] Create a design for the UI
+- [x] Create a design for the UI
 - [ ] Potentially integrate AI using the Vercel SDK (if time allows)
-- [ ] Deploy the app
+- [x] Deploy the app
 
 # FIGMA
  -> https://www.figma.com/design/Tz8xQ76SxvL1FfgLpIIEnC/Untitled?node-id=0-1&p=f&t=CY8dN2ibloKSuAIu-0
