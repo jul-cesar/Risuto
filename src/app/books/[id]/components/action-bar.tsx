@@ -1,3 +1,4 @@
+// No pongas "use client"
 import { ReactNode } from "react";
 
 interface ActionBarProps {
