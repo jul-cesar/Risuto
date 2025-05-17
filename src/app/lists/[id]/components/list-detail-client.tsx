@@ -22,7 +22,6 @@ export function ListDetailClient({
   username
 }: ListDetailClientProps) {
   const [copied, setCopied] = useState(false);
-  const [comments, setComments] = useState<Comment[]>(initialComments);
 
   const handleCopy = async () => {
     // Obtener la URL correcta dependiendo de si la lista es pública o no
@@ -38,32 +37,6 @@ export function ListDetailClient({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleAddComment = async (text: string): Promise<void> => {
-    const newComment = {
-      id: Date.now().toString(),
-      text,
-      commenter_name: username,
-      list_id: list.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // Aquí podrías hacer una llamada a tu API para guardar el comentario
-    // Por ejemplo:
-    // await fetch('/api/comments', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(newComment)
-    // });
-    
-    // Por ahora simulamos una operación asíncrona
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setComments((prev) => [...prev, newComment]);
-        resolve();
-      }, 300); // Simulamos un pequeño delay para hacer más realista la operación
-    });
-  };
 
   return (
     <ListDetailPage
@@ -71,10 +44,10 @@ export function ListDetailClient({
       books={books}
       isOwner={isOwner}
       isSignedIn={isSignedIn}
-      comments={comments}
+      comments={initialComments}
       copied={copied}
       handleCopy={handleCopy}
-      onAddComment={handleAddComment}
+      username={username}
     />
   );
 }

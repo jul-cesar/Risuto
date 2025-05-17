@@ -2,8 +2,8 @@
 import { Book, Comment, List } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
 import { BookList } from "./book-list";
-import { CommentSection } from "./comment-section";
 import { ListHeader } from "./list-header";
+import CommentSection from "./comment-section";
 
 export interface ListDetailPageProps {
   list: List;
@@ -13,7 +13,7 @@ export interface ListDetailPageProps {
   comments: Comment[];
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onAddComment: (text: string) => Promise<void>;
+  username: string;
 }
 
 export function ListDetailPage({ 
@@ -24,7 +24,7 @@ export function ListDetailPage({
   comments, 
   copied, 
   handleCopy,
-  onAddComment
+  username
 } : ListDetailPageProps
 ) {
   return (
@@ -48,11 +48,12 @@ export function ListDetailPage({
         
         {/* Sección de comentarios */}
         {list.comments_enabled && (
-          <CommentSection 
+          <CommentSection
             comments={comments} 
             isPublic={list.is_public} 
-            isSignedIn={isSignedIn} 
-            onAdd={onAddComment}
+            isSignedIn={isSignedIn}
+            listId={list.id}
+            username={username}
           />
         )}
       </div>

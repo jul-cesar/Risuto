@@ -1,4 +1,4 @@
-import { Books, Comment, ListBooks, Lists } from "@/db/schema";
+import { Books, Comments, ListBooks, Lists } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { ListDetailClient } from "./components/list-detail-client";
 import { db } from "@/db";
@@ -14,7 +14,6 @@ const getListByIdOrslug = async (slugOrId : string ) => {
 }
 
 export const getBooksFromList = async (listId: string) => {
-  // Consulta utilizando join para obtener los libros asociados a una lista
   const books = await db
     .select({
       id: Books.id,
@@ -26,37 +25,21 @@ export const getBooksFromList = async (listId: string) => {
       is_trending: Books.is_trending,
     })
     .from(ListBooks)
-    // Hacemos un join con la tabla Books para obtener la información completa de cada libro
     .innerJoin(Books, eq(ListBooks.book_id, Books.id))
-    // Filtramos para obtener solo los libros de la lista específica
     .where(eq(ListBooks.list_id, listId))
-    // Ordenamos por fecha de creación, más recientes primero
     .orderBy(desc(Books.createdAt));
 
   return books;
 };
 
-
-function getCommentsByListId(listId: string): Comment[] {
-  return [
-    {
-      id: "c1",
-      text: "¡Me encantó Dune!",
-      createdAt: "2023-07-15T10:20:00Z",
-      updatedAt: "2023-07-15T10:20:00Z",
-      list_id: "a",
-      commenter_name: "Alice",
-    },
-    {
-      id: "c2",
-      text: "Ender es un clásico de la ciencia ficción.",
-      createdAt: "2023-07-16T14:45:00Z",
-      updatedAt: "2023-07-16T14:45:00Z",
-      list_id: "a",
-      commenter_name: "Bob",
-    },
-  ].filter(comment => comment.list_id === listId);
+export const getComments = async (listId: string) => {
+  return await db
+    .select()
+    .from(Comments)
+    .where(eq(Comments.list_id, listId))
+    .orderBy(desc(Comments.createdAt))
 }
+
 
 export default async function ListPage({
   params,
@@ -65,11 +48,10 @@ export default async function ListPage({
   params: { id: string };
   searchParams?: { shared?: string };
 }) {
-  // Esto ahora funciona como un Server Component
-  const { id: slugOrId } = params;
+  const { id: slugOrId } = await params;
   const list = await getListByIdOrslug(slugOrId);
   const books = await getBooksFromList(list.id)
-  const comments = list ? getCommentsByListId(list.id) : [];
+  const commentsList = list ? await getComments(list.id) : [];
   
   const user = await currentUser();
   
@@ -94,7 +76,7 @@ export default async function ListPage({
       books={books}
       isOwner={isOwner}
       isSignedIn={!!user && !!user.id}
-      initialComments={comments}
+      initialComments={commentsList}
       username={user?.username || "Anónimo"}
     />
   );
