@@ -1,5 +1,5 @@
 import { Book } from "@/db/schema";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { BookCard } from "@/app/dashboard/components/books/book-card";
 
 interface BookListProps {
@@ -31,6 +31,7 @@ export function BookList({ books }: BookListProps) {
             <BookCard key={book.id} book={book} />
           ))}
         </div>
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </section>
   );
