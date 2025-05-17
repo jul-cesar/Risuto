@@ -24,15 +24,17 @@ export default function DashboardPage() {
         ? []
         : listsResponse?.data || [];
 
+      const trendings = Array.isArray(books) ? [] : books?.data || [];
+
       return {
-        books,
+        trendings,
         lists,
       };
     },
     enabled: !!user, // Solo ejecuta la consulta si el usuario está definido // Solo ejecuta la consulta si el usuario está definido
   });
 
-  const books = data?.books || [];
+  const books = data?.trendings || [];
   const lists = data?.lists || [];
 
   return (

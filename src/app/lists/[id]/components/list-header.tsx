@@ -1,3 +1,4 @@
+"use client";
 import { List } from "@/db/schema";
 import { LinkIcon } from "lucide-react";
 
@@ -63,7 +64,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
       </div>
       <p className="text-sm text-gray-400">{list.description}</p>
       <p className="text-xs text-gray-500">
-        Created: {new Date(list.createdAt).toLocaleDateString()}
+        Created: {list.createdAt}
       </p>
     </header>
   );

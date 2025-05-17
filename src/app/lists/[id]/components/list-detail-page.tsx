@@ -1,50 +1,31 @@
+// src/app/lists/[id]/components/list-detail-page.tsx
+
 import { Separator } from "@/components/ui/separator";
 import { Book, Comment, List } from "@/db/schema";
 import { BookList } from "./book-list";
-import { CommentSection } from "./comment-section";
+import CommentSection from "./comment-section";
 import { ListHeader } from "./list-header";
 
-interface ListDetail {
-  
-    books: ({
-        id: string;
-        title: string;
-        author: string;
-        synopsis: string;
-        cover_url: string;
-        is_trending: boolean | null;
-        createdAt: string;
-    } | null)[];
-    id: string;
-    user_id: string;
-    slug: string | null;
-    title: string;
-    description: string;
-    is_public: boolean;
-    comments_enabled: boolean;
-    createdAt: string;
-    updatedAt: string;
-
-}
-
-interface ListDetailPageProps {
-  list: ListDetail;
+export interface ListDetailPageProps {
+  list: List;
+  books: Book[];
   isOwner: boolean;
   isSignedIn: boolean;
   comments: Comment[];
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onAddComment: (text: string) => Promise<void>;
+  username: string;
 }
 
 export function ListDetailPage({
   list,
+  books,
   isOwner,
   isSignedIn,
   comments,
   copied,
   handleCopy,
-  onAddComment,
+  username,
 }: ListDetailPageProps) {
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -60,7 +41,7 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
 
         {/* Libros de la lista */}
-        <BookList books={list.books} />
+        <BookList books={books} />
 
         <Separator className="border-white/20" />
 
@@ -70,7 +51,8 @@ export function ListDetailPage({
             comments={comments}
             isPublic={list.is_public}
             isSignedIn={isSignedIn}
-            onAdd={onAddComment}
+            listId={list.id}
+            username={username}
           />
         )}
       </div>

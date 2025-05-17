@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    depends_on:
+      - web
+    command: http --config /etc/ngrok/ngrok.yml --domain=amazed-carefully-quagga.ngrok-free.app web:3000
+    volumes:
+      - ./ngrok.yml:/etc/ngrok/ngrok.yml

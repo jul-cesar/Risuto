@@ -1,16 +1,14 @@
 "use server";
 
-import { eq, or } from "drizzle-orm";
+import { and, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
 import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
 
-interface response<T> {
+export interface response<T> {
   success: boolean;
   message: string;
   data?: T;
 }
-
-
 
 export const getListBySlugOrId = async (
   slugOrId: string
@@ -27,7 +25,7 @@ export const getListBySlugOrId = async (
       .select()
       .from(Lists)
       .where(or(eq(Lists.slug, slugOrId), eq(Lists.id, slugOrId)))
-      
+
       .get();
 
     if (!list) {
@@ -204,6 +202,62 @@ export const addBookToList = async (
     };
   }
 };
+export const getUserListsExcludingBook = async (
+  userId: string,
+  bookId: string
+): Promise<response<List[]>> => {
+  try {
+    if (!userId || !bookId) {
+      return {
+        success: false,
+        message: "User ID and Book ID are required",
+      };
+    }
+
+    const lists = await db
+      .select({
+        id: Lists.id,
+        user_id: Lists.user_id,
+        slug: Lists.slug,
+        title: Lists.title,
+        description: Lists.description,
+        is_public: Lists.is_public,
+        comments_enabled: Lists.comments_enabled,
+        createdAt: Lists.createdAt,
+        updatedAt: Lists.updatedAt,
+      }) // Selecciona solo las columnas de la tabla Lists
+      .from(Lists)
+      .where(
+        and(
+          eq(Lists.user_id, userId),
+          notInArray(
+            Lists.id,
+            db
+              .select({ list_id: ListBooks.list_id })
+              .from(ListBooks)
+              .where(eq(ListBooks.book_id, bookId)) // Subconsulta para excluir listas que ya contienen el libro
+          )
+        )
+      )
+      .all();
+
+    return {
+      success: true,
+      message:
+        lists.length > 0 ? "Lists retrieved successfully" : "No lists found",
+      data: lists,
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error retrieving user lists without the book:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the lists",
+    };
+  }
+};
 
 export const getCurrentUserLists = async (
   userId: string
@@ -224,7 +278,8 @@ export const getCurrentUserLists = async (
 
     return {
       success: true,
-      message: lists.length > 0 ? "Lists retrieved successfully" : "No lists found",
+      message:
+        lists.length > 0 ? "Lists retrieved successfully" : "No lists found",
       data: lists,
     };
   } catch (error: unknown) {
@@ -238,7 +293,6 @@ export const getCurrentUserLists = async (
     };
   }
 };
-
 
 export const getListsWithBooks = async (listId: string) => {
   try {
@@ -270,8 +324,8 @@ export const getListsWithBooks = async (listId: string) => {
 
     // Agrupamos todos los libros asociados a esta lista
     const books = rows
-      .filter(row => row.book !== null)
-      .map(row => row.book);
+      .filter((row) => row.book !== null)
+      .map((row) => row.book);
 
     return {
       success: true,
@@ -288,8 +342,8 @@ export const getListsWithBooks = async (listId: string) => {
     );
     return {
       success: false,
-      message: "An unexpected error occurred while retrieving the list with books",
+      message:
+        "An unexpected error occurred while retrieving the list with books",
     };
   }
 };
-

@@ -1,105 +1,83 @@
-// src/app/lists/[id]/page.tsx
-"use client";
+import { Books, Comments, ListBooks, Lists } from "@/db/schema";
+import { currentUser } from "@clerk/nextjs/server";
+import { ListDetailClient } from "./components/list-detail-client";
+import { db } from "@/db";
+import { eq, desc } from "drizzle-orm";
 
-import { getListsWithBooks } from "@/actions/lists-actions";
-import { Comment } from "@/db/schema";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { use, useState } from "react";
-import { ListDetailPage } from "./components/list-detail-page";
+const getListByIdOrslug = async (slugOrId : string ) => {
+  return await db
+  .select()
+  .from(Lists)
+  .where(eq(Lists.id, slugOrId) || eq(Lists.slug, slugOrId))
+  .limit(1)
+  .then(results => results[0] || null);
+}
 
-export default function ListPage({
+export const getBooksFromList = async (listId: string) => {
+  const books = await db
+    .select({
+      id: Books.id,
+      title: Books.title,
+      author: Books.author,
+      synopsis: Books.synopsis,
+      cover_url: Books.cover_url,
+      createdAt: Books.createdAt,
+      is_trending: Books.is_trending,
+    })
+    .from(ListBooks)
+    .innerJoin(Books, eq(ListBooks.book_id, Books.id))
+    .where(eq(ListBooks.list_id, listId))
+    .orderBy(desc(Books.createdAt));
+
+  return books;
+};
+
+export const getComments = async (listId: string) => {
+  return await db
+    .select()
+    .from(Comments)
+    .where(eq(Comments.list_id, listId))
+    .orderBy(desc(Comments.createdAt))
+}
+
+
+export default async function ListPage({
   params,
+  searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
+  searchParams?: { shared?: string };
 }) {
-  const { id: slugOrId } = use(params);
-
-  const { isSignedIn, userId } = useAuth();
-  const { user } = useUser();
-
-  const isShared =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("shared");
-  const [copied, setCopied] = useState(false);
-
-  const { data: list, isLoading } = useQuery({
-    queryKey: ["list"],
-    queryFn: async () => {
-      const res = await getListsWithBooks(slugOrId);
-      if (!res.success) {
-        throw new Error(res.message);
-      }
-      return res.data;
-    },
-  });
-
-  const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
-
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "c1",
-      text: "¡Me encantó Dune!",
-      createdAt: "2023-07-15T10:20:00Z",
-      updatedAt: "2023-07-15T10:20:00Z",
-      list_id: "a",
-      commenter_name: "Alice",
-    },
-    {
-      id: "c2",
-      text: "Ender es un clásico de la ciencia ficción.",
-      createdAt: "2023-07-16T14:45:00Z",
-      updatedAt: "2023-07-16T14:45:00Z",
-      list_id: "a",
-      commenter_name: "Bob",
-    },
-  ]);
-
-  const handleAddComment = async (text: string) => {
-    const newComment = {
-      id: Date.now().toString(),
-      text,
-      commenter_name: user?.username ?? "Anónimo",
-      list_id: list?.id ?? "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setComments((prev) => [...prev, newComment]);
-  };
-
-  const handleCopy = async () => {
-    const url = `${window.location.origin}/lists/${list?.id}?shared=true`;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="size-7 animate-spin" />
-      </div>
-    );
-  }
-
+  const { id: slugOrId } = await params;
+  const list = await getListByIdOrslug(slugOrId);
+  const books = await getBooksFromList(list.id)
+  const commentsList = list ? await getComments(list.id) : [];
+  
+  const user = await currentUser();
+  
+  // Verificamos si el usuario es propietario de la lista
+  const isOwner = !!(user && user.id && list?.user_id === user.id);
+  
+  // Verificar si se compartió a través de la URL
+  const isShared = !!searchParams?.shared;
+  
   if (!list) {
     return <div className="p-8">Lista no encontrada</div>;
   }
-
+  
+  // Bloquear acceso si privada y ni dueño ni tiene ?shared
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
   }
 
   return (
-    <ListDetailPage
+    <ListDetailClient
       list={list}
+      books={books}
       isOwner={isOwner}
-      isSignedIn={!!isSignedIn}
-      comments={comments}
-      copied={copied}
-      handleCopy={handleCopy}
-      onAddComment={handleAddComment}
+      isSignedIn={!!user && !!user.id}
+      initialComments={commentsList}
+      username={user?.username || "Anónimo"}
     />
   );
 }

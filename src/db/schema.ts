@@ -14,6 +14,8 @@ export const Users = sqliteTable("users", {
   email: text().notNull().unique(),
 });
 
+
+
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
 }));
