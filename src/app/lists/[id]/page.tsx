@@ -40,32 +40,35 @@ export const getComments = async (listId: string) => {
     .orderBy(desc(Comments.createdAt))
 }
 
+export const dynamic = "force-dynamic"; 
 
 export default async function ListPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams?: { shared?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ shared?: string }>;
 }) {
-  const { id: slugOrId } = await params;
+  // Resolvemos las promesas
+  const { id: slugOrId } = await params;              
+  const { shared } = searchParams                     
+    ? await searchParams
+    : { shared: undefined };
+
+  // Fetch de datos
   const list = await getListByIdOrslug(slugOrId);
-  const books = await getBooksFromList(list.id)
+  const books = list ? await getBooksFromList(list.id) : [];
   const commentsList = list ? await getComments(list.id) : [];
-  
   const user = await currentUser();
-  
-  // Verificamos si el usuario es propietario de la lista
-  const isOwner = !!(user && user.id && list?.user_id === user.id);
-  
-  // Verificar si se compartió a través de la URL
-  const isShared = !!searchParams?.shared;
-  
+
+  // Lógica de permisos
+  const isOwner = !!(user?.id && list?.user_id === user.id);
+  const isShared = !!shared;
+
   if (!list) {
     return <div className="p-8">Lista no encontrada</div>;
   }
-  
-  // Bloquear acceso si privada y ni dueño ni tiene ?shared
+
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
   }
@@ -75,7 +78,7 @@ export default async function ListPage({
       list={list}
       books={books}
       isOwner={isOwner}
-      isSignedIn={!!user && !!user.id}
+      isSignedIn={!!user?.id}
       initialComments={commentsList}
       username={user?.username || "Anónimo"}
     />
