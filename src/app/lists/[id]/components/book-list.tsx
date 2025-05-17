@@ -1,9 +1,16 @@
-import { Book } from "@/db/schema";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookCard } from "@/app/dashboard/components/books/book-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BookListProps {
-  books: Book[];
+  books: ({
+    id: string;
+    title: string;
+    author: string;
+    synopsis: string;
+    cover_url: string;
+    is_trending: boolean | null;
+    createdAt: string;
+  } | null)[];
 }
 
 export function BookList({ books }: BookListProps) {
@@ -27,8 +34,8 @@ export function BookList({ books }: BookListProps) {
       </h2>
       <ScrollArea className="w-full pb-4 overflow-visible">
         <div className="flex space-x-6 p-4">
-          {books.map((book : Book) => (
-            <BookCard key={book.id} book={book} />
+          {books.map((book) => (
+            <BookCard key={book?.id} book={book} />
           ))}
         </div>
       </ScrollArea>

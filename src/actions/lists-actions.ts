@@ -1,14 +1,57 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "../db";
-import { List, ListBooks, Lists, NewList } from "../db/schema";
+import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
 
 interface response<T> {
   success: boolean;
   message: string;
   data?: T;
 }
+
+
+
+export const getListBySlugOrId = async (
+  slugOrId: string
+): Promise<response<List>> => {
+  try {
+    if (!slugOrId) {
+      return {
+        success: false,
+        message: "List ID or slug is required",
+      };
+    }
+
+    const list = await db
+      .select()
+      .from(Lists)
+      .where(or(eq(Lists.slug, slugOrId), eq(Lists.id, slugOrId)))
+      
+      .get();
+
+    if (!list) {
+      return {
+        success: false,
+        message: "List not found",
+      };
+    }
+    return {
+      success: true,
+      message: "List retrieved successfully",
+      data: list,
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error retrieving list:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the list",
+    };
+  }
+};
 
 export const createList = async (list: NewList): Promise<response<List>> => {
   try {
@@ -195,3 +238,58 @@ export const getCurrentUserLists = async (
     };
   }
 };
+
+
+export const getListsWithBooks = async (listId: string) => {
+  try {
+    if (!listId) {
+      return {
+        success: false,
+        message: "List ID is required",
+      };
+    }
+
+    const rows = await db
+      .select({
+        list: Lists,
+        book: Books,
+      })
+      .from(Lists)
+      .leftJoin(ListBooks, eq(ListBooks.list_id, Lists.id))
+      .leftJoin(Books, eq(Books.id, ListBooks.book_id))
+      .where(eq(Lists.id, listId));
+
+    if (rows.length === 0) {
+      return {
+        success: false,
+        message: "List not found",
+      };
+    }
+
+    const list = rows[0].list;
+
+    // Agrupamos todos los libros asociados a esta lista
+    const books = rows
+      .filter(row => row.book !== null)
+      .map(row => row.book);
+
+    return {
+      success: true,
+      message: "List retrieved successfully",
+      data: {
+        ...list,
+        books,
+      },
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error retrieving list with books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the list with books",
+    };
+  }
+};
+

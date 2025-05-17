@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { NewList } from "@/db/schema";
 import { useUser } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,14 +46,15 @@ export function ListForm({
     commentsEnabled: false,
     slug: "",
   },
-  closeModal, // Recibe una función para cerrar el modal
+  closeModal,
 }: ListFormProps & { closeModal: () => void }) {
   const form = useForm<ListFormValues>({
     resolver: zodResolver(listFormSchema),
     defaultValues,
   });
   const { user } = useUser();
-  const [loading, setLoading] = useState(false); // Estado de carga
+  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const onSubmit = async ({
     commentsEnabled,
@@ -61,7 +63,7 @@ export function ListForm({
     visibility,
     slug,
   }: ListFormValues) => {
-    setLoading(true); // Activa el estado de carga
+    setLoading(true);
     const newList: NewList = {
       user_id: user?.id ?? "",
       title,
@@ -70,9 +72,14 @@ export function ListForm({
       is_public: visibility === "public",
       comments_enabled: commentsEnabled,
     };
-    await createList(newList);
-    setLoading(false); // Desactiva el estado de carga
-    closeModal(); // Cierra el modal
+    const res = await createList(newList);
+    if (!res.success) {
+      setLoading(false);
+      return;
+    }
+    queryClient.invalidateQueries(["dashboardData"]);
+    setLoading(false);
+    closeModal();
   };
 
   return (

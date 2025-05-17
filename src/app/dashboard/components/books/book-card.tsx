@@ -1,14 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Book } from "@/db/schema";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
-export function BookCard({ book } : { book : Book}) {
+export function BookCard({ book }: { book: Book | null }) {
+  if (!book) return null;
   return (
-    <Link
-      href={`/books/${book.id}`}
-      className="flex-shrink-0 w-48"
-    >
+    <Link href={`/books/${book.id}`} className="flex-shrink-0 w-48">
       <Card className="p-2 h-full flex flex-col transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer">
         <CardContent className="p-0 h-56 bg-zinc-800 rounded-t-lg overflow-hidden relative">
           <Image

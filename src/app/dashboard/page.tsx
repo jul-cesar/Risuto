@@ -1,4 +1,4 @@
-"use client"; // quitar con los fetch
+"use client";
 
 import { getTrendingBooks } from "@/actions/book-actions";
 import { getCurrentUserLists } from "@/actions/lists-actions";
@@ -10,25 +10,30 @@ import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-l
 import { MyLists } from "./components/my-lists/my-lists";
 
 export default function DashboardPage() {
-  const { data: books = [], isLoading: isLoadingTrendings } = useQuery({
-    queryKey: ["books"],
-    queryFn: async () => {
-      const res = await getTrendingBooks();
-      return res;
-    },
-  });
   const { user } = useUser();
 
-  const { data: lists = [], isLoading } = useQuery({
-    queryKey: ["MyLists"],
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboardData"],
     queryFn: async () => {
-      if (!user?.id) return []; // Retorna un array vacío si no hay usuario
-      const res = await getCurrentUserLists(user.id);
-      if (!res) return []; // Retorna un array vacío si no hay listas
-      return res.data;
+      const [books, listsResponse] = await Promise.all([
+        getTrendingBooks(),
+        user?.id ? getCurrentUserLists(user.id) : [],
+      ]);
+
+      const lists = Array.isArray(listsResponse)
+        ? []
+        : listsResponse?.data || [];
+
+      return {
+        books,
+        lists,
+      };
     },
-    enabled: !!user?.id, // Habilita la consulta solo si user.id está definido
+    enabled: !!user, // Solo ejecuta la consulta si el usuario está definido // Solo ejecuta la consulta si el usuario está definido
   });
+
+  const books = data?.books || [];
+  const lists = data?.lists || [];
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -40,7 +45,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Trending books */}
-        <TrendingBooks books={books} isLoading={isLoadingTrendings} />
+        <TrendingBooks books={books} isLoading={isLoading} />
 
         <Separator className="border-white/20 mb-12" />
 

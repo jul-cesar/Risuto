@@ -1,66 +1,13 @@
 // src/app/lists/[id]/page.tsx
 "use client";
 
-import { Book, Comment, List } from "@/db/schema";
+import { getListsWithBooks } from "@/actions/lists-actions";
+import { Comment } from "@/db/schema";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { use, useState } from "react";
 import { ListDetailPage } from "./components/list-detail-page";
-
-interface ListDetail extends List {
-  books: Book[];
-}
-
-const lists: ListDetail[] = [
-  {
-    id: "a",
-    title: "Mis lecturas favoritas",
-    description: "Todo lo que me encantó",
-    user_id: "user_123",
-    slug: "favoritas",
-    is_public: true,
-    comments_enabled: false,
-    createdAt: "2023-04-20",
-    updatedAt: "2023-04-22",
-    books: [
-      {
-        id: "1",
-        title: "El juego de Dune",
-        author: "Frank Herbert",
-        synopsis:
-          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
-        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-        createdAt: "2023-05-10T14:23:00Z",
-        is_trending: false,
-      },
-      {
-        id: "3",
-        title: "Dune",
-        author: "Frank Herbert",
-        synopsis:
-          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
-        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-        createdAt: "2023-05-10T14:23:00Z",
-        is_trending: false,
-      },
-    ],
-  },
-  {
-    id: "b",
-    title: "Lecturas secretas",
-    description: "Solo para mis ojos",
-    user_id: "user_2x42yS6hicQbB26KZMk45fmBxjB",
-    slug: "secretas",
-    is_public: false,
-    comments_enabled: true,
-    createdAt: "2023-05-10",
-    updatedAt: "2023-05-11",
-    books: [],
-  },
-];
-
-function getListBySlugOrId(slugOrId: string): ListDetail | undefined {
-  return lists.find((list) => list.id === slugOrId || list.slug === slugOrId);
-}
 
 export default function ListPage({
   params,
@@ -68,14 +15,27 @@ export default function ListPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: slugOrId } = use(params);
-  const list = getListBySlugOrId(slugOrId);
+
   const { isSignedIn, userId } = useAuth();
   const { user } = useUser();
-  const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
+
   const isShared =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("shared");
   const [copied, setCopied] = useState(false);
+
+  const { data: list, isLoading } = useQuery({
+    queryKey: ["list"],
+    queryFn: async () => {
+      const res = await getListsWithBooks(slugOrId);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return res.data;
+    },
+  });
+
+  const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
 
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -115,21 +75,20 @@ export default function ListPage({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="size-7 animate-spin" />
+      </div>
+    );
+  }
+
   if (!list) {
     return <div className="p-8">Lista no encontrada</div>;
   }
 
-  // Bloquear acceso si privada y ni dueño ni tiene ?shared
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
-  }
-
-  if (!list) {
-    return (
-      <main className="p-8">
-        <h1 className="text-xl font-bold">Lista no encontrada</h1>
-      </main>
-    );
   }
 
   return (
