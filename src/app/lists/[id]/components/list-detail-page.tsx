@@ -1,26 +1,24 @@
+// src/app/lists/[id]/components/list-detail-page.tsx
 import { Book, Comment, List } from "@/db/schema";
-import { ListHeader } from "./list-header";
 import { Separator } from "@/components/ui/separator";
 import { BookList } from "./book-list";
 import { CommentSection } from "./comment-section";
+import { ListHeader } from "./list-header";
 
-
-interface ListDetail extends List {
+export interface ListDetailPageProps {
+  list: List;
   books: Book[];
-}
-
-interface ListDetailPageProps {
-  list: ListDetail;
   isOwner: boolean;
   isSignedIn: boolean;
   comments: Comment[];
   copied: boolean;
-  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void ;
+  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onAddComment: (text: string) => Promise<void>;
 }
 
 export function ListDetailPage({ 
   list, 
+  books,
   isOwner, 
   isSignedIn, 
   comments, 
@@ -44,7 +42,7 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
         
         {/* Libros de la lista */}
-        <BookList books={list.books} />
+        <BookList books={books} />
         
         <Separator className="border-white/20" />
         

@@ -1,3 +1,4 @@
+"use client";
 import { List } from "@/db/schema";
 import { LinkIcon } from "lucide-react";
 

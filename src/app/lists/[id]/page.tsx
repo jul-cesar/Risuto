@@ -1,83 +1,44 @@
-// src/app/lists/[id]/page.tsx
-"use client";
+import { Books, Comment, ListBooks, Lists } from "@/db/schema";
+import { currentUser } from "@clerk/nextjs/server";
+import { ListDetailClient } from "./components/list-detail-client";
+import { db } from "@/db";
+import { eq, desc } from "drizzle-orm";
 
-import { Book, Comment, List } from "@/db/schema";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { use, useState } from "react";
-import { ListDetailPage } from "./components/list-detail-page";
-
-interface ListDetail extends List {
-  books: Book[];
+const getListByIdOrslug = async (slugOrId : string ) => {
+  return await db
+  .select()
+  .from(Lists)
+  .where(eq(Lists.id, slugOrId) || eq(Lists.slug, slugOrId))
+  .limit(1)
+  .then(results => results[0] || null);
 }
 
-const lists: ListDetail[] = [
-  {
-    id: "a",
-    title: "Mis lecturas favoritas",
-    description: "Todo lo que me encantó",
-    user_id: "user_123",
-    slug: "favoritas",
-    is_public: true,
-    comments_enabled: false,
-    createdAt: "2023-04-20",
-    updatedAt: "2023-04-22",
-    books: [
-      {
-        id: "1",
-        title: "El juego de Dune",
-        author: "Frank Herbert",
-        synopsis:
-          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
-        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-        createdAt: "2023-05-10T14:23:00Z",
-        is_trending: false,
-      },
-      {
-        id: "3",
-        title: "Dune",
-        author: "Frank Herbert",
-        synopsis:
-          "El juego de Dune es una novela de ficción escrita por el británico Frank Herbert en 1965. La historia sigue a un joven llamado Paul Atreides, quien viaja por el universo Dune, buscando una batalla con un enemigo más poderoso que el Imperio de los Imperios.",
-        cover_url: "https://i.imgur.com/PIo43KF.jpeg",
-        createdAt: "2023-05-10T14:23:00Z",
-        is_trending: false,
-      },
-    ],
-  },
-  {
-    id: "b",
-    title: "Lecturas secretas",
-    description: "Solo para mis ojos",
-    user_id: "user_2x42yS6hicQbB26KZMk45fmBxjB",
-    slug: "secretas",
-    is_public: false,
-    comments_enabled: true,
-    createdAt: "2023-05-10",
-    updatedAt: "2023-05-11",
-    books: [],
-  },
-];
+export const getBooksFromList = async (listId: string) => {
+  // Consulta utilizando join para obtener los libros asociados a una lista
+  const books = await db
+    .select({
+      id: Books.id,
+      title: Books.title,
+      author: Books.author,
+      synopsis: Books.synopsis,
+      cover_url: Books.cover_url,
+      createdAt: Books.createdAt,
+      is_trending: Books.is_trending,
+    })
+    .from(ListBooks)
+    // Hacemos un join con la tabla Books para obtener la información completa de cada libro
+    .innerJoin(Books, eq(ListBooks.book_id, Books.id))
+    // Filtramos para obtener solo los libros de la lista específica
+    .where(eq(ListBooks.list_id, listId))
+    // Ordenamos por fecha de creación, más recientes primero
+    .orderBy(desc(Books.createdAt));
 
-function getListBySlugOrId(slugOrId: string): ListDetail | undefined {
-  return lists.find((list) => list.id === slugOrId || list.slug === slugOrId);
-}
+  return books;
+};
 
-export default function ListPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: slugOrId } = use(params);
-  const list = getListBySlugOrId(slugOrId);
-  const { isSignedIn, userId } = useAuth();
-  const { user } = useUser();
-  const isOwner: boolean = !!(isSignedIn && userId === list?.user_id);
-  const isShared =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("shared");
-  const [copied, setCopied] = useState(false);
 
-  const [comments, setComments] = useState<Comment[]>([
+function getCommentsByListId(listId: string): Comment[] {
+  return [
     {
       id: "c1",
       text: "¡Me encantó Dune!",
@@ -94,53 +55,47 @@ export default function ListPage({
       list_id: "a",
       commenter_name: "Bob",
     },
-  ]);
+  ].filter(comment => comment.list_id === listId);
+}
 
-  const handleAddComment = async (text: string) => {
-    const newComment = {
-      id: Date.now().toString(),
-      text,
-      commenter_name: user?.username ?? "Anónimo",
-      list_id: list?.id ?? "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setComments((prev) => [...prev, newComment]);
-  };
-
-  const handleCopy = async () => {
-    const url = `${window.location.origin}/lists/${list?.id}?shared=true`;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+export default async function ListPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { shared?: string };
+}) {
+  // Esto ahora funciona como un Server Component
+  const { id: slugOrId } = params;
+  const list = await getListByIdOrslug(slugOrId);
+  const books = await getBooksFromList(list.id)
+  const comments = list ? getCommentsByListId(list.id) : [];
+  
+  const user = await currentUser();
+  
+  // Verificamos si el usuario es propietario de la lista
+  const isOwner = !!(user && user.id && list?.user_id === user.id);
+  
+  // Verificar si se compartió a través de la URL
+  const isShared = !!searchParams?.shared;
+  
   if (!list) {
     return <div className="p-8">Lista no encontrada</div>;
   }
-
+  
   // Bloquear acceso si privada y ni dueño ni tiene ?shared
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
   }
 
-  if (!list) {
-    return (
-      <main className="p-8">
-        <h1 className="text-xl font-bold">Lista no encontrada</h1>
-      </main>
-    );
-  }
-
   return (
-    <ListDetailPage
+    <ListDetailClient
       list={list}
+      books={books}
       isOwner={isOwner}
-      isSignedIn={!!isSignedIn}
-      comments={comments}
-      copied={copied}
-      handleCopy={handleCopy}
-      onAddComment={handleAddComment}
+      isSignedIn={!!user && !!user.id}
+      initialComments={comments}
+      username={user?.username || "Anónimo"}
     />
   );
 }
