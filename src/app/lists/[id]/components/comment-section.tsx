@@ -1,16 +1,16 @@
-import { MessageSquare } from "lucide-react";
-import { SignInButton } from "@clerk/nextjs";
-import { Comment } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
+import { Comment } from "@/db/schema";
+import { formatCustomDate } from "@/lib/utils";
+import { SignInButton } from "@clerk/nextjs";
+import { MessageSquare } from "lucide-react";
 import { CommentForm } from "./comment-form";
 
-
-export default function CommentSection({ 
+export default function CommentSection({
   comments,
   isPublic,
   isSignedIn,
   listId,
-  username
+  username,
 }: {
   comments: Comment[];
   isPublic: boolean;
@@ -25,9 +25,9 @@ export default function CommentSection({
         Comments
       </h2>
       <Separator />
-      
+
       {/* Formulario de nuevo comentario */}
-      {(!isPublic && !isSignedIn) ? (
+      {!isPublic && !isSignedIn ? (
         <div className="flex justify-center">
           <SignInButton mode="modal">
             <button className="text-sm underline hover:text-foreground transition">
@@ -36,14 +36,11 @@ export default function CommentSection({
           </SignInButton>
         </div>
       ) : (
-        <CommentForm
-          listId={listId}
-          username={username}
-        />
+        <CommentForm listId={listId} username={username} />
       )}
-      
+
       <Separator />
-      
+
       {/* Listado de comentarios */}
       {comments.length === 0 ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
@@ -60,13 +57,11 @@ export default function CommentSection({
   );
 }
 
-
-
-export function CommentItem({ comment } : { comment: Comment }) {
+export function CommentItem({ comment }: { comment: Comment }) {
   return (
     <div className="bg-card rounded-md p-4 space-y-1 text-card-foreground">
       <p className="text-xs text-muted-foreground">
-        {comment.commenter_name} &bull; {comment.createdAt}
+        {comment.commenter_name} &bull; {formatCustomDate(comment.createdAt)}
       </p>
       <p className="text-sm">{comment.text}</p>
     </div>
