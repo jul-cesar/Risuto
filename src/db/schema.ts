@@ -35,9 +35,9 @@ export const Books = sqliteTable("books", {
 export const Lists = sqliteTable("lists", {
   id: text().primaryKey().$defaultFn(() => createId()),
   user_id: text().notNull(),
-  slug: text().default(sql`(lower(hex(randomblob(8))))`),
+  slug: text(),
   title: text().notNull(),
-  description: text().notNull(),
+  description: text(),
   is_public: integer({ mode: "boolean" }).notNull(),
   comments_enabled: integer({ mode: "boolean" }).notNull(),
   createdAt: text("created_at")
@@ -47,6 +47,7 @@ export const Lists = sqliteTable("lists", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`)
     .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    organization_id: text(),
 });
 
 export const listRelations = relations(Lists, ({ one }) => ({
@@ -95,6 +96,38 @@ export const commentRelations = relations(Comments, ({ one }) => ({
   }),
 }));
 
+export const Genres = sqliteTable("genres", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  name: text().notNull().unique(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const genreRelations = relations(Genres, ({ many }) => ({
+  books: many(BookGenres),
+}));
+
+export const BookGenres = sqliteTable("book_genres", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  book_id: text().notNull(),
+  genre_id: text().notNull(),
+  addedAt: text("added_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const bookGenresRelations = relations(BookGenres, ({ one }) => ({
+  book: one(Books, {
+    fields: [BookGenres.book_id],
+    references: [Books.id],
+  }),
+  genre: one(Genres, {
+    fields: [BookGenres.genre_id],
+    references: [Genres.id],
+  }),
+}));
+
 export type User = typeof Users.$inferSelect;
 export type NewUser = typeof Users.$inferInsert;
 
@@ -111,3 +144,9 @@ export type NewListBook = typeof ListBooks.$inferInsert;
 
 export type Comment = typeof Comments.$inferSelect;
 export type NewComment = typeof Comments.$inferInsert;
+
+export type Genre = typeof Genres.$inferSelect;
+export type NewGenre = typeof Genres.$inferInsert;
+
+export type BookGenre = typeof BookGenres.$inferSelect;
+export type NewBookGenre = typeof BookGenres.$inferInsert;

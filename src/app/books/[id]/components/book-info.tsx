@@ -1,11 +1,13 @@
-import { Separator } from "@/components/ui/separator"; 
+import { getBookGenres } from "@/actions/book-actions";
+import { Separator } from "@/components/ui/separator";
 import { Book } from "@/db/schema";
 
 interface BookInfoProps {
   book: Book;
 }
 
-export function BookInfo({ book }: BookInfoProps) {
+export async function BookInfo({ book }: BookInfoProps) {
+  const genres = await getBookGenres(book.id);
   return (
     <div className="flex-1 space-y-4">
       <h1 className="text-3xl font-bold">{book.title}</h1>
@@ -13,8 +15,9 @@ export function BookInfo({ book }: BookInfoProps) {
       <p className="text-xs text-gray-500">
         Published: {new Date(book.createdAt).toLocaleDateString()}
       </p>
+      <p className="">Genres: {genres.data?.map((genre) => genre.genre).join(", ")}</p>
       <Separator className="border-white/20" />
-      <div className="text-base leading-relaxed">{book.synopsis}</div>
+      <div className="text-md leading-relaxed font-sans ">{book.synopsis}</div>
     </div>
   );
 }

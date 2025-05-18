@@ -241,6 +241,7 @@ export const getUserListsExcludingBook = async (
         comments_enabled: Lists.comments_enabled,
         createdAt: Lists.createdAt,
         updatedAt: Lists.updatedAt,
+        organization_id: Lists.organization_id,
       }) // Selecciona solo las columnas de la tabla Lists
       .from(Lists)
       .where(

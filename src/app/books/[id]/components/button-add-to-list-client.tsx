@@ -48,7 +48,7 @@ export default function AddToListButtonClient({ bookId, userLists }: Props) {
   if (userLists.length === 0) {
     return (
       <Button variant="outline" disabled>
-        No hay listas
+        No lists available
       </Button>
     );
   }

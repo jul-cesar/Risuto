@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { Book, Books, ListBooks } from "@/db/schema";
+import { Book, BookGenres, Books, Genres, ListBooks } from "@/db/schema";
 import { desc, eq, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
@@ -120,6 +120,42 @@ export const searchBooksInDb = async (
     return {
       success: false,
       message: "An unexpected error occurred while searching for books",
+    };
+  }
+};
+
+
+export const getBookGenres = async (bookId: string): Promise<response<{ genre: string }[]>> => {
+  try {
+    if (!bookId) {
+      return {
+        success: false,
+        message: "Book ID is required",
+      };
+    }
+
+    const genres = await db
+      .select({
+        genre: Genres.name,
+      })
+      .from(BookGenres)
+      .innerJoin(Genres, eq(BookGenres.genre_id, Genres.id))
+      .where(eq(BookGenres.book_id, bookId))
+      .orderBy(desc(Genres.createdAt));
+
+    return {
+      success: true,
+      message: genres.length > 0 ? "Genres retrieved successfully" : "No genres found for this book",
+      data: genres,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving book genres:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the genres",
     };
   }
 };

@@ -13,21 +13,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { searchBooksInDb } from "@/actions/book-actions";
+import { getBooksFromList, searchBooksInDb } from "@/actions/book-actions";
 import { addBookToList } from "@/actions/lists-actions";
+import { Book } from "@/db/schema";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, PlusCircle, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // Tipo para los libros
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  cover_url: string;
-  synopsis: string;
-}
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -60,15 +55,23 @@ export function SearchBooksModal({
 
   const router = useRouter();
 
+  const { data: booksList } = useQuery({
+    queryKey: ["booksList", listId],
+    queryFn: async () => {
+      const response = await getBooksFromList(listId);
+      return response.data;
+    },
+  });
+
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     const searchBooks = async () => {
       if (debouncedSearchTerm.trim() === "") {
         setBooks([]);
         return;
       }
-
       setIsSearching(true);
-
       try {
         const response = await searchBooksInDb(
           debouncedSearchTerm.toLowerCase()
@@ -98,7 +101,7 @@ export function SearchBooksModal({
       toast.error(add.message);
       return;
     }
-    setBooks((prevBooks) => prevBooks.filter((b) => b.id !== book.id)); // Elimina el libro de la lista de búsqueda
+    queryClient.invalidateQueries(["booksList", listId]);
     toast.success(`"${book.title}" ha sido añadido a tu lista.`);
   };
 
@@ -152,7 +155,7 @@ export function SearchBooksModal({
               {books.map((book) => (
                 <div
                   key={book.id}
-                  className="flex border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  className="flex cursor-pointer border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div className="w-[80px] h-[120px] flex-shrink-0 bg-muted">
                     <img
@@ -162,7 +165,14 @@ export function SearchBooksModal({
                     />
                   </div>
                   <div className="flex flex-col flex-1 p-3">
-                    <h3 className="font-medium line-clamp-1">{book.title}</h3>
+                    <h3
+                      className="font-medium line-clamp-1 underline"
+                      onClick={() => {
+                        window.open(`/books/${book.id}`, "_blank"); // Abre en una nueva ventana
+                      }}
+                    >
+                      {book.title}
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-1">
                       {book.author}
                     </p>
@@ -173,15 +183,25 @@ export function SearchBooksModal({
                       <Badge variant="outline" className="text-xs">
                         Libro
                       </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2"
-                        onClick={() => handleAddBook(book)}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-1" />
-                        Añadir
-                      </Button>
+                      {!booksList?.some((b) => b.id === book.id) ? ( // Verifica si el libro ya está en la lista usando `some`
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 px-2"
+                          onClick={() => handleAddBook(book)}
+                        >
+                          <PlusCircle className="h-4 w-4 mr-1" />
+                          Añadir
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 px-2 bg-green-500 text-xs"
+                        >
+                          Already added
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

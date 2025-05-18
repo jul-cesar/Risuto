@@ -1,21 +1,29 @@
 import { db } from "@/db";
-import { Books } from "@/db/schema";
+import { Book, BookGenres, Books, Genres } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import puppeteer from "puppeteer";
 
 async function scrapeGoodreads(urls: string[]) {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({
+    headless: false,
+    defaultViewport: null,
+    protocolTimeout: 120000, // Aumenta el tiempo de espera del protocolo a 120 segundos
+  });
   const page = await browser.newPage();
-  const processedUrls = new Set<string>(); 
+  const processedUrls = new Set<string>(); // Conjunto para rastrear URLs de libros procesadas
+  const processedPages = new Set<string>(); // Conjunto para rastrear URLs de páginas procesadas
 
   try {
-    const allBooks = [];
+    const allBooks: Book[] = [];
 
     for (const baseUrl of urls) {
-      let repeatedPageCount = 0; // Contador para páginas repetidas
-
       for (let pageNum = 1; pageNum <= 3; pageNum++) {
         const url = `${baseUrl}?page=${pageNum}`;
+        if (processedPages.has(url)) {
+          console.log(`Skipped already processed page: ${url}`);
+          continue; // Salta si la página ya fue procesada
+        }
+
         try {
           await page.goto(url, {
             waitUntil: "domcontentloaded",
@@ -26,23 +34,13 @@ async function scrapeGoodreads(urls: string[]) {
           const currentUrl = page.url();
           if (!currentUrl.includes(`page=${pageNum}`)) {
             console.log(
-              `Detected redirection to a repeated page: ${currentUrl}.`
+              `Detected redirection to a different page: ${currentUrl}. Skipping this page and continuing pagination.`
             );
-            repeatedPageCount++;
-
-            // Si se detecta la misma redirección varias veces, detén la paginación
-            if (repeatedPageCount >= 2) {
-              console.log(
-                `Stopping pagination for this category due to repeated redirections.`
-              );
-              break;
-            }
-
-            continue; // Intenta con la siguiente página
+            continue; // Salta a la siguiente página de la paginación
           }
 
-          // Reinicia el contador si la página es válida
-          repeatedPageCount = 0;
+          // Marca la página como procesada
+          processedPages.add(url);
         } catch (error) {
           console.error(`Failed to load page: ${url}`, error);
           continue; // Salta a la siguiente página si hay un error
@@ -87,6 +85,10 @@ async function scrapeGoodreads(urls: string[]) {
             });
             await page.waitForSelector(".ResponsiveImage", { timeout: 10000 });
             await page.waitForSelector(".Formatted", { timeout: 10000 });
+            await page.waitForSelector(
+              ".BookPageMetadataSection__genreButton .Button__labelItem",
+              { timeout: 10000 }
+            ); // Espera por los géneros
           } catch (error) {
             console.error(
               `Failed to find selectors on page: ${bookUrl}`,
@@ -109,8 +111,13 @@ async function scrapeGoodreads(urls: string[]) {
             const description =
               document.querySelector(".Formatted")?.textContent?.trim() ||
               "N/A";
+            const genres = Array.from(
+              document.querySelectorAll(
+                ".BookPageMetadataSection__genreButton .Button__labelItem"
+              )
+            ).map((genre) => genre.textContent?.trim() || "N/A");
 
-            return { title, author, img, description };
+            return { title, author, img, description, genres };
           });
 
           const existingBook = await db
@@ -121,21 +128,66 @@ async function scrapeGoodreads(urls: string[]) {
             )
             .get();
 
+          let bookId;
           if (!existingBook) {
-            allBooks.push({
-              title: bookDetails.title,
-              author: bookDetails.author,
-              synopsis: bookDetails.description,
-              cover_url: bookDetails.img,
-            });
+            const insertedBook = await db
+              .insert(Books)
+              .values({
+                title: bookDetails.title,
+                author: bookDetails.author,
+                synopsis: bookDetails.description,
+                cover_url: bookDetails.img,
+              })
+              .returning()
+              .get();
 
+            bookId = insertedBook.id;
             console.log(
               `Scraped book: ${bookDetails.title} by ${bookDetails.author}`
             );
           } else {
+            bookId = existingBook.id;
             console.log(
               `Skipped duplicate book: ${bookDetails.title} by ${bookDetails.author}`
             );
+          }
+
+          // Procesa los géneros
+          for (const genreName of bookDetails.genres) {
+            if (genreName === "N/A") continue;
+
+            let genre = await db
+              .select()
+              .from(Genres)
+              .where(sql`${Genres.name} = ${genreName}`)
+              .get();
+
+            if (!genre) {
+              genre = await db
+                .insert(Genres)
+                .values({ name: genreName })
+                .returning()
+                .get();
+              console.log(`Inserted new genre: ${genreName}`);
+            }
+
+            const existingRelation = await db
+              .select()
+              .from(BookGenres)
+              .where(
+                sql`${BookGenres.book_id} = ${bookId} AND ${BookGenres.genre_id} = ${genre.id}`
+              )
+              .get();
+
+            if (!existingRelation) {
+              await db.insert(BookGenres).values({
+                book_id: bookId,
+                genre_id: genre.id,
+              });
+              console.log(
+                `Linked book "${bookDetails.title}" with genre "${genreName}"`
+              );
+            }
           }
         }
       }
@@ -153,6 +205,9 @@ async function scrapeGoodreads(urls: string[]) {
 }
 
 scrapeGoodreads([
+  "https://www.goodreads.com/shelf/show/comics",
+  "https://www.goodreads.com/shelf/show/graphic-novels",
+  "https://www.goodreads.com/shelf/show/psychology",
   "https://www.goodreads.com/shelf/show/popular",
   "https://www.goodreads.com/shelf/show/art",
   "https://www.goodreads.com/shelf/show/biography",

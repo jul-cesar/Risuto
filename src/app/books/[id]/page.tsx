@@ -1,10 +1,10 @@
 // src/app/books/[id]/page.tsx
-import { BookCover } from "./components/book-cover";
-import { BookInfo } from "./components/book-info";
-import { ActionBar } from "./components/action-bar";
 import { db } from "@/db";
 import { Books } from "@/db/schema";
-import { eq } from 'drizzle-orm'
+import { eq } from "drizzle-orm";
+import { ActionBar } from "./components/action-bar";
+import { BookCover } from "./components/book-cover";
+import { BookInfo } from "./components/book-info";
 import AddToListButton from "./components/button-add-to-list";
 
 const getBookById = async (id: string) => {
@@ -13,10 +13,10 @@ const getBookById = async (id: string) => {
     .from(Books)
     .where(eq(Books.id, id))
     .limit(1)
-    .then(results => results[0] || null);
+    .then((results) => results[0] || null);
 };
 
-export const dynamic = "force-dynamic"; 
+export const dynamic = "force-dynamic";
 
 export default async function BookDetail({
   params,
@@ -28,7 +28,7 @@ export default async function BookDetail({
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Imagen y datos principales */}
         <div className="flex flex-col md:flex-row gap-6">
           <BookCover src={book.cover_url} alt={book.title} />
@@ -42,4 +42,3 @@ export default async function BookDetail({
     </main>
   );
 }
-
