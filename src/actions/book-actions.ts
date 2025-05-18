@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { Book, Books, ListBooks } from "@/db/schema";
-import { desc, eq, like, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
 export const getTrendingBooks = async (): Promise<response<Book[]>> => {
@@ -99,16 +99,13 @@ export const searchBooksInDb = async (
   try {
     const searchTermLower = searchTerm.toLowerCase();
 
-const books = await db
-  .select()
-  .from(Books)
-  .where(
-    like(
-      sql`lower(${Books.title})`,
-      `%${searchTermLower}%`
-    )
-  )
-  .orderBy(desc(Books.createdAt));
+    const books = await db
+      .select()
+      .from(Books)
+      .where(
+        sql`lower(${Books.title}) LIKE ${`%${searchTermLower}%`} OR lower(${Books.author}) LIKE ${`%${searchTermLower}%`}`
+      )
+      
 
     return {
       success: true,
@@ -125,4 +122,4 @@ const books = await db
       message: "An unexpected error occurred while searching for books",
     };
   }
-} 
+};

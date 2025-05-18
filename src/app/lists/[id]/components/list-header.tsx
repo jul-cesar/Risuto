@@ -1,15 +1,21 @@
 "use client";
 import { List } from "@/db/schema";
+import { formatDate } from "date-fns";
 import { LinkIcon } from "lucide-react";
 
 interface ListHeaderProps {
-  list: List,
-  isOwner: boolean,
-  copied: boolean,
-  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void
+  list: List;
+  isOwner: boolean;
+  copied: boolean;
+  handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProps) {
+export function ListHeader({
+  list,
+  isOwner,
+  copied,
+  handleCopy,
+}: ListHeaderProps) {
   const ShareButton = () => {
     // Si es pública y el owner la ve, generamos link CON shared
     if (list.is_public && isOwner) {
@@ -18,12 +24,12 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
           onClick={handleCopy}
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
-          <LinkIcon className="w-4 h-4" /> 
+          <LinkIcon className="w-4 h-4" />
           {copied ? "Shared link copied!" : "Share link"}
         </button>
       );
     }
-    
+
     // Si es pública y NO es el owner, generamos link SIN shared
     if (list.is_public && !isOwner) {
       return (
@@ -38,7 +44,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
         </button>
       );
     }
-    
+
     // Si NO es pública y es el owner, generamos link CON shared
     if (!list.is_public && isOwner) {
       return (
@@ -46,12 +52,12 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
           onClick={handleCopy}
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
-          <LinkIcon className="w-4 h-4" /> 
+          <LinkIcon className="w-4 h-4" />
           {copied ? "Shared link copied!" : "Generate private link"}
         </button>
       );
     }
-    
+
     // Si NO es pública y NO es el owner, no mostramos botón
     return null;
   };
@@ -64,7 +70,7 @@ export function ListHeader({ list, isOwner, copied, handleCopy }: ListHeaderProp
       </div>
       <p className="text-sm text-gray-400">{list.description}</p>
       <p className="text-xs text-gray-500">
-        Created: {list.createdAt}
+        Created: {formatDate(list.createdAt, "dd/MM/yyyy")}
       </p>
     </header>
   );
