@@ -1,7 +1,9 @@
 "use client";
 import { List } from "@/db/schema";
 import { formatDate } from "date-fns";
-import { LinkIcon } from "lucide-react";
+import { LinkIcon, UsersIcon } from "lucide-react";
+import { InviteModal} from "./invite-modal";
+import { useState } from "react";
 
 interface ListHeaderProps {
   list: List;
@@ -16,9 +18,11 @@ export function ListHeader({
   copied,
   handleCopy,
 }: ListHeaderProps) {
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  
   const ShareButton = () => {
-    // Si es pública y el owner la ve, generamos link CON shared
-    if (list.is_public && isOwner) {
+    // Si es pública, mantenemos la lógica actual para compartir enlaces públicos
+    if (list.is_public) {
       return (
         <button
           onClick={handleCopy}
@@ -30,30 +34,15 @@ export function ListHeader({
       );
     }
 
-    // Si es pública y NO es el owner, generamos link SIN shared
-    if (list.is_public && !isOwner) {
+    // Si NO es pública y es el owner, mostramos botón para invitar personas
+    if (!list.is_public && isOwner && list.organization_id) {
       return (
         <button
-          onClick={async () => {
-            const url = `${window.location.origin}/lists/${list.slug}`;
-            await navigator.clipboard.writeText(url);
-          }}
+          onClick={() => setShowInviteModal(true)}
           className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
         >
-          <LinkIcon className="w-4 h-4" /> Share
-        </button>
-      );
-    }
-
-    // Si NO es pública y es el owner, generamos link CON shared
-    if (!list.is_public && isOwner) {
-      return (
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 text-sm hover:text-zinc-400 transition-colors"
-        >
-          <LinkIcon className="w-4 h-4" />
-          {copied ? "Shared link copied!" : "Generate private link"}
+          <UsersIcon className="w-4 h-4" />
+          Invite members
         </button>
       );
     }
@@ -72,6 +61,18 @@ export function ListHeader({
       <p className="text-xs text-gray-500">
         Created: {formatDate(list.createdAt, "dd/MM/yyyy")}
       </p>
+      
+      {/* Modal de invitación */}
+      {showInviteModal && (
+        <InviteModal 
+          list={{
+            id: list.id,
+            title: list.title,
+            organization_id: list.organization_id as string
+          }}
+          onClose={() => setShowInviteModal(false)}
+        />
+      )}
     </header>
   );
 }

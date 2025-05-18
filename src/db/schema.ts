@@ -40,6 +40,7 @@ export const Lists = sqliteTable("lists", {
   description: text(),
   is_public: integer({ mode: "boolean" }).notNull(),
   comments_enabled: integer({ mode: "boolean" }).notNull(),
+  organization_id: text(),
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

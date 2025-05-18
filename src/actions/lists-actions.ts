@@ -3,6 +3,7 @@
 import { and, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
 import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export interface response<T> {
   success: boolean;
@@ -52,34 +53,99 @@ export const getListBySlugOrId = async (
 };
 
 export const createList = async (list: NewList): Promise<response<List>> => {
+  // Validación inicial de entrada
+  if (!list || Object.keys(list).length === 0) {
+    return {
+      success: false,
+      message: 'List data is required and cannot be empty',
+    };
+  }
+
   try {
-    if (!list || Object.keys(list).length === 0) {
-      return {
-        success: false,
-        message: "List data is required and cannot be empty",
+    // 1. Iniciar cliente de Clerk
+    const clerk = await clerkClient();
+
+    let newList: List | undefined;
+
+    // 2. Si la lista es privada, crear organización en Clerk
+    if (!list.is_public) {
+      let organization;
+
+      try {
+        // 2.1 Crear organización básica (solo 'name' y 'createdBy')
+        organization = await clerk.organizations.createOrganization({
+          name: `${list.title} - Private List`,
+          createdBy: list.user_id,
+        });
+
+        // 2.2 Generar un slug seguro (minúsculas y guiones)
+        const safeSlug = list.slug
+          ? `list-${list.slug}`
+              .toLowerCase()
+              .replace(/[^a-z0-9-]/g, '-')
+          : undefined;
+
+        // 2.3 Actualizar slug y metadatos
+        await clerk.organizations.updateOrganization(
+          organization.id,
+          {
+            slug: safeSlug,
+            publicMetadata: {
+              isListOrganization: true,
+              createdAt: new Date().toISOString(),
+            },
+          }
+        );
+      } catch (err: unknown) {
+        // Volcar error completo para diagnóstico
+        console.error(
+          'Raw Clerk error:',
+          JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+        );
+        // Manejo de error específico de Clerk
+        if (err instanceof ClerkAPIResponseError) {
+          console.error('Clerk API errors:', err.errors);
+        }
+        return {
+          success: false,
+          message:
+            'There was a problem setting up the organization. Please try again later.',
+        };
+      }
+
+      // 3. Persistir la lista con el ID de organización
+      const listWithOrg = {
+        ...list,
+        organization_id: organization.id,
       };
+      newList = await db.insert(Lists).values(listWithOrg).returning().get();
+    } else {
+      // 4. Creación de lista pública (sin organización)
+      newList = await db.insert(Lists).values(list).returning().get();
     }
 
-    const newList = await db.insert(Lists).values(list).returning().get();
+    // 5. Validar resultado de inserción
     if (!newList) {
       return {
         success: false,
-        message: "Failed to create list",
+        message: 'Failed to create list',
       };
     }
+
     return {
       success: true,
-      message: "List created successfully",
+      message: 'List created successfully',
       data: newList,
     };
   } catch (error: unknown) {
+    // Errores inesperados
     console.error(
-      "Error creating list:",
+      'Error creating list:',
       error instanceof Error ? error.message : error
     );
     return {
       success: false,
-      message: "An unexpected error occurred while creating the list",
+      message: 'An unexpected error occurred while creating the list',
     };
   }
 };
