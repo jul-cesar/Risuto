@@ -41,7 +41,7 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
 
         {/* Libros de la lista */}
-        <BookList books={books} />
+        <BookList books={books} listId={list.id}/>
 
         <Separator className="border-white/20" />
 
