@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { searchBooksInDb } from "@/actions/book-actions";
 import { addBookToList } from "@/actions/lists-actions";
 import { Loader2, PlusCircle, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -57,6 +58,8 @@ export function SearchBooksModal({
   const [books, setBooks] = useState<Book[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  const router = useRouter();
+
   useEffect(() => {
     const searchBooks = async () => {
       if (debouncedSearchTerm.trim() === "") {
@@ -90,7 +93,12 @@ export function SearchBooksModal({
   }, [debouncedSearchTerm, toast]);
 
   const handleAddBook = async (book: Book) => {
-    await addBookToList(listId, book.id);
+    const add = await addBookToList(listId, book.id);
+    if (!add.success) {
+      toast.error(add.message);
+      return;
+    }
+    setBooks((prevBooks) => prevBooks.filter((b) => b.id !== book.id)); // Elimina el libro de la lista de búsqueda
     toast.success(`"${book.title}" ha sido añadido a tu lista.`);
   };
 
@@ -99,11 +107,17 @@ export function SearchBooksModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        setOpen((prev) => !prev);
+        router.refresh(); // Refresca la página al abrir el modal
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl">Buscar libros</DialogTitle>
+          <DialogTitle className="text-xl"> Search Books</DialogTitle>
         </DialogHeader>
 
         <div className="relative mb-4">
@@ -112,7 +126,7 @@ export function SearchBooksModal({
           </div>
           <Input
             type="search"
-            placeholder="Buscar por título, autor..."
+            placeholder="Search by title, author..."
             className="pl-10 pr-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -177,20 +191,17 @@ export function SearchBooksModal({
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <div className="text-4xl mb-2">📚</div>
               <h3 className="text-lg font-medium">
-                No se encontraron resultados
+                No results found for "{debouncedSearchTerm}"
               </h3>
-              <p className="text-muted-foreground">
-                No encontramos libros que coincidan con "{debouncedSearchTerm}"
-              </p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <div className="text-4xl mb-2">🔍</div>
               <h3 className="text-lg font-medium">
-                Busca tus libros favoritos
+                Search for books to add to your list
               </h3>
               <p className="text-muted-foreground">
-                Escribe en la barra de búsqueda para encontrar libros
+                Write the title or author of the book you want to add.
               </p>
             </div>
           )}

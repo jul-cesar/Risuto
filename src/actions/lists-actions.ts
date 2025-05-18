@@ -174,6 +174,22 @@ export const addBookToList = async (
         message: "List ID and Book ID are required",
       };
     }
+    const alreadyInList = await db
+      .select()
+      .from(ListBooks)
+      .where(
+        and(
+          eq(ListBooks.list_id, listId),
+          eq(ListBooks.book_id, bookId)
+        )
+      )
+      .get();
+    if (alreadyInList) {
+      return {
+        success: false,
+        message: "Book already in list",
+      };
+    }
 
     const result = await db
       .insert(ListBooks)
