@@ -1,4 +1,5 @@
 import { BookCard } from "@/app/dashboard/components/books/book-card";
+import { SearchBooksModal } from "@/components/AddBooksModal";
 
 interface BookListProps {
   books: ({
@@ -10,9 +11,10 @@ interface BookListProps {
     is_trending: boolean | null;
     createdAt: string;
   } | null)[];
+  listId: string;
 }
 
-export function BookList({ books }: BookListProps) {
+export function BookList({ books, listId }: BookListProps) {
   if (books.length === 0) {
     return (
       <section>
@@ -21,6 +23,17 @@ export function BookList({ books }: BookListProps) {
         </h2>
         <div className="h-40 flex items-center justify-center text-gray-400">
           No hay libros en esta lista
+        </div>
+        <div className="text-sm text-gray-500">
+          Agrega libros a tu lista para empezar a leer
+          <SearchBooksModal
+            listId={listId}
+            trigger={
+              <button className="text-sm underline hover:text-foreground transition">
+                Agregar libros
+              </button>
+            }
+          />
         </div>
       </section>
     );

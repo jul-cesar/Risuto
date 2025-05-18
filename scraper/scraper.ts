@@ -1,16 +1,17 @@
 import { db } from '@/db';
 import { Books } from '@/db/schema';
+import { sql } from 'drizzle-orm';
 import puppeteer from 'puppeteer';
 
 async function scrapeGoodreads(urls: string[]) {
-    const browser = await puppeteer.launch({ headless: false }); //headless false sino no sirve
+    const browser = await puppeteer.launch({ headless: false }); 
     const page = await browser.newPage();
 
     try {
-        const allBooks = []; // se almacenas todos los libros para guardarlos de una y no 1x1
+        const allBooks = []; 
 
         for (const baseUrl of urls) {
-            for (let pageNum = 1; pageNum <= 3; pageNum++) { //solo las 3 primeras paginas de cada genero
+            for (let pageNum = 1; pageNum <= 3; pageNum++) { 
                 const url = `${baseUrl}?page=${pageNum}`;
                 await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -44,19 +45,31 @@ async function scrapeGoodreads(urls: string[]) {
                         return { title, author, img, description };
                     });
 
-                    allBooks.push({
-                        title: bookDetails.title,
-                        author: bookDetails.author,
-                        synopsis: bookDetails.description,
-                        cover_url: bookDetails.img,
-                    });
+                    
+                    const existingBook = await db
+                        .select()
+                        .from(Books)
+                        .where(
+                            sql`${Books.title} = ${bookDetails.title} AND ${Books.author} = ${bookDetails.author}`
+                        )
+                        .get();
 
-                    console.log(`Scraped book: ${bookDetails.title} by ${bookDetails.author}`);
+                    if (!existingBook) {
+                        allBooks.push({
+                            title: bookDetails.title,
+                            author: bookDetails.author,
+                            synopsis: bookDetails.description,
+                            cover_url: bookDetails.img,
+                        });
+
+                        console.log(`Scraped book: ${bookDetails.title} by ${bookDetails.author}`);
+                    } else {
+                        console.log(`Skipped duplicate book: ${bookDetails.title} by ${bookDetails.author}`);
+                    }
                 }
             }
         }
 
-     
         if (allBooks.length > 0) {
             await db.insert(Books).values(allBooks).run();
             console.log(`Inserted ${allBooks.length} books into the database.`);

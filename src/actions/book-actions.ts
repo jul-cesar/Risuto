@@ -1,7 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { Book, ListBooks } from "@/db/schema";
+import { Book, Books, ListBooks } from "@/db/schema";
+import { desc, eq, like, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
 export const getTrendingBooks = async (): Promise<response<Book[]>> => {
@@ -61,3 +62,67 @@ export const addBookToList = async (
     };
   }
 };
+
+export const getBooksFromList = async (listId: string): Promise<response<Book[]>> => {
+  try {
+    const books = await db
+      .select({
+        id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        createdAt: Books.createdAt,
+        is_trending: Books.is_trending,
+      })
+      .from(ListBooks)
+      .innerJoin(Books, eq(ListBooks.book_id, Books.id))
+      .where(eq(ListBooks.list_id, listId))
+      .orderBy(desc(Books.createdAt));
+    return {
+      success: true,
+      message: "Books retrieved successfully",
+      data: books,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving books from list:",
+      error instanceof Error ? error.message : error
+    );
+    throw new Error("An unexpected error occurred while retrieving the books");
+  }
+};
+
+export const searchBooksInDb = async (
+  searchTerm: string
+): Promise<response<Book[]>> => {
+  try {
+    const searchTermLower = searchTerm.toLowerCase();
+
+const books = await db
+  .select()
+  .from(Books)
+  .where(
+    like(
+      sql`lower(${Books.title})`,
+      `%${searchTermLower}%`
+    )
+  )
+  .orderBy(desc(Books.createdAt));
+
+    return {
+      success: true,
+      message: "Books retrieved successfully",
+      data: books,
+    };
+  } catch (error) {
+    console.error(
+      "Error searching for books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while searching for books",
+    };
+  }
+} 

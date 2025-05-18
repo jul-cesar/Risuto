@@ -1,46 +1,20 @@
-import { Books, Comments, ListBooks, Lists } from "@/db/schema";
-import { currentUser } from "@clerk/nextjs/server";
-import { ListDetailClient } from "./components/list-detail-client";
+import { getBooksFromList } from "@/actions/book-actions";
+import { getListBySlugOrId } from "@/actions/lists-actions";
 import { db } from "@/db";
-import { eq, desc } from "drizzle-orm";
-
-const getListByIdOrslug = async (slugOrId : string ) => {
-  return await db
-  .select()
-  .from(Lists)
-  .where(eq(Lists.id, slugOrId) || eq(Lists.slug, slugOrId))
-  .limit(1)
-  .then(results => results[0] || null);
-}
-
-export const getBooksFromList = async (listId: string) => {
-  const books = await db
-    .select({
-      id: Books.id,
-      title: Books.title,
-      author: Books.author,
-      synopsis: Books.synopsis,
-      cover_url: Books.cover_url,
-      createdAt: Books.createdAt,
-      is_trending: Books.is_trending,
-    })
-    .from(ListBooks)
-    .innerJoin(Books, eq(ListBooks.book_id, Books.id))
-    .where(eq(ListBooks.list_id, listId))
-    .orderBy(desc(Books.createdAt));
-
-  return books;
-};
+import { Comments } from "@/db/schema";
+import { currentUser } from "@clerk/nextjs/server";
+import { desc, eq } from "drizzle-orm";
+import { ListDetailClient } from "./components/list-detail-client";
 
 export const getComments = async (listId: string) => {
   return await db
     .select()
     .from(Comments)
     .where(eq(Comments.list_id, listId))
-    .orderBy(desc(Comments.createdAt))
-}
+    .orderBy(desc(Comments.createdAt));
+};
 
-export const dynamic = "force-dynamic"; 
+export const dynamic = "force-dynamic";
 
 export default async function ListPage({
   params,
@@ -50,15 +24,14 @@ export default async function ListPage({
   searchParams?: Promise<{ shared?: string }>;
 }) {
   // Resolvemos las promesas
-  const { id: slugOrId } = await params;              
-  const { shared } = searchParams                     
-    ? await searchParams
-    : { shared: undefined };
+  const { id: slugOrId } = await params;
+  const { shared } = searchParams ? await searchParams : { shared: undefined };
 
   // Fetch de datos
-  const list = await getListByIdOrslug(slugOrId);
-  const books = list ? await getBooksFromList(list.id) : [];
+  const list = (await getListBySlugOrId(slugOrId)).data;
+  const books = list ? (await getBooksFromList(list.id)).data : [];
   const commentsList = list ? await getComments(list.id) : [];
+
   const user = await currentUser();
 
   // Lógica de permisos
@@ -69,6 +42,8 @@ export default async function ListPage({
     return <div className="p-8">Lista no encontrada</div>;
   }
 
+  // Bloquear acceso si privada y ni dueño ni tiene ?shared
+
   if (!list.is_public && !isOwner && !isShared) {
     return <div className="p-8">No autorizado</div>;
   }
@@ -76,7 +51,7 @@ export default async function ListPage({
   return (
     <ListDetailClient
       list={list}
-      books={books}
+      books={books ?? []}
       isOwner={isOwner}
       isSignedIn={!!user?.id}
       initialComments={commentsList}

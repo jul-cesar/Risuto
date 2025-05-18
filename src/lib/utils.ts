@@ -18,7 +18,7 @@ export function formatCustomDate(date:  Date | string ) {
   .replace(/years?/, "y");
 
    
-  result = result.replace(/less than a minute/, "just now");
+  result = result.replace("less than a m", "just now");
 
   return result;
 }
