@@ -89,7 +89,6 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
   try {
     // 1. Carga miembros activos
     const { data: membershipData } = await organization.getMemberships();
-    console.log('⚙️ Raw membershipData:', membershipData);
 
     const activeEmailMap = new Map<string, true>();
     const activeMembers = membershipData.map(m => {
@@ -102,22 +101,18 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
         status: 'active' as const,
       };
     });
-    console.log(`✅ Active members (${activeMembers.length}):`, activeMembers);
 
     // 2. Carga invitaciones (todas) y filtra las “pending”
     const { data: inviteData } = await organization.getInvitations();
-    console.log('⚙️ Raw inviteData:', inviteData);
 
     // Filtrado por estatus ‘pending’
     const pendingRaw = inviteData.filter(inv => inv.status === 'pending');
-    console.log(`⏳ Pending invites before dedupe (${pendingRaw.length}):`, pendingRaw);
 
     // Filtra contra miembros activos
     const pendingNotMember = pendingRaw.filter(inv => {
       const email = inv.emailAddress.toLowerCase();
       return !activeEmailMap.has(email);
     });
-    console.log(`⏳ Pending invites not members (${pendingNotMember.length}):`, pendingNotMember);
 
     // Deduplica por email
     const deduped: Record<string, typeof pendingNotMember[0]> = {};
@@ -126,7 +121,6 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
       if (!deduped[key]) deduped[key] = inv;
     });
     const pendingInvites = Object.values(deduped);
-    console.log(`⏳ Pending invites after dedupe (${pendingInvites.length}):`, pendingInvites);
 
     // Mapea al formato UI
     const pendingMembers = pendingInvites.map(inv => ({
@@ -135,11 +129,9 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
       role: inv.role,
       status: 'pending' as const,
     }));
-    console.log('👥 Final pendingMembers:', pendingMembers);
 
     // 3. Combina y actualiza estado
     setMembers([...activeMembers, ...pendingMembers]);
-    console.log('📋 setMembers:', [...activeMembers, ...pendingMembers]);
   } catch (err) {
     console.error('Error loading members:', err);
     setError('Could not load organization members');
@@ -169,7 +161,6 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
   }
 
   try {
-    console.log('→ Enviando invitación a org', organization.id, ':', email);
     // Llamada a nuestro endpoint
     const resp = await fetch('/api/invite', {
       method: 'POST',
@@ -177,7 +168,7 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
       body: JSON.stringify({
         organizationId: organization.id,
         email,
-        redirectUrl: `${window.location.origin}/lists/${list.id}`  // tu ruta de destino
+        redirectUrl: `${window.location.origin}/accept-invitation?redirect_url=/lists/${list.id}`  // tu ruta de destino
       }),
     });
 

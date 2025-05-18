@@ -6,7 +6,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { ListDetailClient } from "./components/list-detail-client";
 import { clerkClient } from "@clerk/nextjs/server";
-import ListInvitationHandler from "./components/list-invitation-handler";
 
 export const getComments = async (listId: string) => {
   return await db

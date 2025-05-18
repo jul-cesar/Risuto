@@ -9,6 +9,10 @@ const protectedRoutes = createRouteMatcher([
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { pathname, searchParams } = req.nextUrl;
 
+  if (pathname.startsWith('/accept-invitation')) {
+    return NextResponse.next();
+  }
+
   // 1) Listas públicas sin params → NEXT
   if (
     pathname.startsWith("/lists/") &&
