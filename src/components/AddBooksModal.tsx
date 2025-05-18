@@ -90,7 +90,7 @@ export function SearchBooksModal({
     };
 
     searchBooks();
-  }, [debouncedSearchTerm, toast]);
+  }, [debouncedSearchTerm]);
 
   const handleAddBook = async (book: Book) => {
     const add = await addBookToList(listId, book.id);
