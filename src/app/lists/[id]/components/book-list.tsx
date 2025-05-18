@@ -24,14 +24,11 @@ export function BookList({ books, listId }: BookListProps) {
           <span className="mr-2">📚</span> Books in this list
         </h2>
         <div className="h-40 flex gap-2 items-center justify-center text-gray-400">
-          No hay libros en esta lista
+          There are no books in this list yet.
           <SearchBooksModal
             listId={listId}
-            trigger={<p className="underline cursor-pointer">Agregar libros</p>}
+            trigger={<p className="underline cursor-pointer">Add some books</p>}
           />
-        </div>
-        <div className="text-sm text-gray-500">
-          Agrega libros a tu lista para empezar a leer
         </div>
       </section>
     );

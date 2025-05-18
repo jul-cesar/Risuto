@@ -19,6 +19,7 @@ import { NewList } from "@/db/schema";
 import { useUser } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -55,6 +56,7 @@ export function ListForm({
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const onSubmit = async ({
     commentsEnabled,
@@ -77,7 +79,9 @@ export function ListForm({
       setLoading(false);
       return;
     }
+    router.push(`/lists/${res.data?.id}`);
     queryClient.invalidateQueries(["dashboardData"]);
+
     setLoading(false);
     closeModal();
   };
