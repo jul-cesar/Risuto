@@ -74,6 +74,8 @@ export const getBooksFromList = async (listId: string): Promise<response<Book[]>
         cover_url: Books.cover_url,
         createdAt: Books.createdAt,
         is_trending: Books.is_trending,
+        publishedAt: Books.publishedAt,
+        pagesInfo: Books.pagesInfo,
       })
       .from(ListBooks)
       .innerJoin(Books, eq(ListBooks.book_id, Books.id))

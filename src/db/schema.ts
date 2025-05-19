@@ -25,6 +25,8 @@ export const Books = sqliteTable("books", {
   title: text().notNull(),
   author: text().notNull(),
   synopsis: text().notNull(),
+  publishedAt: text("published_at"),
+  pagesInfo: text("pages_info"),
   cover_url: text().notNull(),
   is_trending: integer({ mode: "boolean" }).default(false),
   createdAt: text("created_at")
@@ -41,6 +43,7 @@ export const Lists = sqliteTable("lists", {
   is_public: integer({ mode: "boolean" }).notNull(),
   comments_enabled: integer({ mode: "boolean" }).notNull(),
   organization_id: text(),
+
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -48,7 +51,7 @@ export const Lists = sqliteTable("lists", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`)
     .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    organization_id: text(),
+  
 });
 
 export const listRelations = relations(Lists, ({ one }) => ({
@@ -99,7 +102,7 @@ export const commentRelations = relations(Comments, ({ one }) => ({
 
 export const Genres = sqliteTable("genres", {
   id: text().primaryKey().$defaultFn(() => createId()),
-  name: text().notNull().unique(),
+  name: text().notNull().unique(), // Define el índice único aquí
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

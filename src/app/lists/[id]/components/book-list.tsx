@@ -12,6 +12,8 @@ interface BookListProps {
     cover_url: string;
     is_trending: boolean | null;
     createdAt: string;
+    publishedAt: string | null;
+    pagesInfo: string | null;
   } | null)[];
   listId: string;
 }

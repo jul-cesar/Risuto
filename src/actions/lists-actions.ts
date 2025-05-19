@@ -1,9 +1,9 @@
 "use server";
 
+import { clerkClient } from "@clerk/nextjs/server";
 import { and, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
 import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
-import { clerkClient } from "@clerk/nextjs/server";
 
 export interface response<T> {
   success: boolean;
@@ -103,9 +103,7 @@ export const createList = async (list: NewList): Promise<response<List>> => {
           JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
         );
         // Manejo de error específico de Clerk
-        if (err instanceof ClerkAPIResponseError) {
-          console.error('Clerk API errors:', err.errors);
-        }
+        
         return {
           success: false,
           message:
@@ -430,3 +428,49 @@ export const getListsWithBooks = async (listId: string) => {
     };
   }
 };
+
+export const deleteBookFromList = async (
+  listId: string,
+  bookId: string
+): Promise<response<void>> => {
+  try {
+    if (!listId || !bookId) {
+      return {
+        success: false,
+        message: "List ID and Book ID are required",
+      };
+    }
+
+    const deleted = await db
+      .delete(ListBooks)
+      .where(
+        and(
+          eq(ListBooks.list_id, listId),
+          eq(ListBooks.book_id, bookId)
+        )
+      )
+      .returning()
+      .get();
+
+    if (!deleted) {
+      return {
+        success: false,
+        message: "Failed to delete book from list",
+      };
+    }
+    return {
+      success: true,
+      message: "Book deleted from list successfully",
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error deleting book from list:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message:
+        "An unexpected error occurred while deleting the book from the list",
+    };
+  }
+}
