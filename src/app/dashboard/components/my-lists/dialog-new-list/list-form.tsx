@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { NewList } from "@/db/schema";
 import { useUser } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createId } from "@paralleldrive/cuid2";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -70,7 +71,7 @@ export function ListForm({
       user_id: user?.id ?? "",
       title,
       description,
-      slug: slug || null,
+      slug: slug || createId(),
       is_public: visibility === "public",
       comments_enabled: commentsEnabled,
     };

@@ -74,13 +74,13 @@ export const createList = async (list: NewList): Promise<response<List>> => {
       try {
         // 2.1 Crear organización básica (solo 'name' y 'createdBy')
         organization = await clerk.organizations.createOrganization({
-          name: `${list.title} - Private List`,
+          name: `${list.title}`,
           createdBy: list.user_id,
         });
 
         // 2.2 Generar un slug seguro (minúsculas y guiones)
         const safeSlug = list.slug
-          ? `list-${list.slug}`
+          ? `${list.slug}`
               .toLowerCase()
               .replace(/[^a-z0-9-]/g, '-')
           : undefined;

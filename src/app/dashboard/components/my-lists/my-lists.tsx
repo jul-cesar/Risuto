@@ -17,7 +17,7 @@ export function MyLists({
   isLoading = false,
 }: MyListsProps) {
   return (
-    <section>
+    <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center text-sm space-x-1">
           <span>📚 My lists</span>
@@ -30,7 +30,7 @@ export function MyLists({
       {isLoading ? (
         <SkeletonList />
       ) : lists.length === 0 ? (
-        <EmptyState message="No hay listas" />
+        <EmptyState message="You have no lists. Start by creating one" />
       ) : (
         <ListsCarousel lists={lists} />
       )}

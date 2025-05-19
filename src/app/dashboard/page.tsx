@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { TrendingBooks } from "./components/books/trending-books";
 import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-list-dialog";
 import { MyLists } from "./components/my-lists/my-lists";
+import { getUserSharedOrganizations } from "@/actions/clerk-actions";
+import { SharedLists } from "./components/shared-lists/shared-lists";
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -15,9 +17,10 @@ export default function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboardData"],
     queryFn: async () => {
-      const [books, listsResponse] = await Promise.all([
+      const [books, listsResponse, userOrganizations] = await Promise.all([
         getTrendingBooks(),
         user?.id ? getCurrentUserLists(user.id) : [],
+        user?.id ? getUserSharedOrganizations(user.id) : [],
       ]);
 
       const lists = Array.isArray(listsResponse)
@@ -26,9 +29,13 @@ export default function DashboardPage() {
 
       const trendings = Array.isArray(books) ? [] : books?.data || [];
 
+      const userOrgs = Array.isArray(userOrganizations) ? userOrganizations : [];
+
+
       return {
         trendings,
         lists,
+        userOrgs
       };
     },
     enabled: !!user, // Solo ejecuta la consulta si el usuario está definido // Solo ejecuta la consulta si el usuario está definido
@@ -36,6 +43,7 @@ export default function DashboardPage() {
 
   const books = data?.trendings || [];
   const lists = data?.lists || [];
+  const userOrgs = data?.userOrgs || [];
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -55,6 +63,14 @@ export default function DashboardPage() {
         <MyLists
           lists={lists}
           dialogTrigger={<CreateListDialog />}
+          isLoading={isLoading}
+        />
+
+        <Separator className="border-white/20 mb-12" />
+
+        {/* Shared lists */}
+        <SharedLists 
+          organizations={userOrgs}
           isLoading={isLoading}
         />
       </div>
