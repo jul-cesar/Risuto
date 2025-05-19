@@ -6,6 +6,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { ListDetailClient } from "./components/list-detail-client";
 import { clerkClient } from "@clerk/nextjs/server";
+import { getLikesWithClerk, likeList, unlikeList } from "@/actions/likes-actions";
 
 export const getComments = async (listId: string) => {
   return await db
@@ -75,12 +76,15 @@ export default async function ListPage({
   // 3) Fetch de books y comments
   const books = (await getBooksFromList(list.id)).data ?? [];
   const commentsList = await getComments(list.id);
+  const likes = await getLikesWithClerk(list.id);
 
   return (
     <>
       <ListDetailClient
         list={list}
         books={books}
+        likes={likes}
+        initialLiked={likes.some(u => u.id === userId)}
         isOwner={isOwner}
         isSignedIn={!!userId}
         initialComments={commentsList}

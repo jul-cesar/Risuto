@@ -1,10 +1,12 @@
 // src/app/lists/[id]/components/list-detail-page.tsx
 
 import { Separator } from "@/components/ui/separator";
-import { Book, Comment, List } from "@/db/schema";
+import { Book, Comment, Like, List } from "@/db/schema";
 import { BookListDeletable } from "./BookListDeletable";
 import CommentSection from "./comment-section";
 import { ListHeader } from "./list-header";
+import { LikesSection } from "./likes-section";
+import { LikeWithClerkUser } from "@/types/models/list-likes";
 
 export interface ListDetailPageProps {
   list: List;
@@ -12,20 +14,26 @@ export interface ListDetailPageProps {
   isOwner: boolean;
   isSignedIn: boolean;
   comments: Comment[];
+  likes: LikeWithClerkUser[];
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
   username: string;
+  onToggleLike: (newState: boolean) => Promise<void>;
+  initialLiked: boolean;
 }
 
 export function ListDetailPage({
   list,
   books,
+  likes,
   isOwner,
   isSignedIn,
   comments,
   copied,
   handleCopy,
   username,
+  onToggleLike,
+  initialLiked,
 }: ListDetailPageProps) {
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -42,6 +50,16 @@ export function ListDetailPage({
 
         {/* Libros de la lista */}
         <BookListDeletable books={books} listId={list.id} canDelete={true} />
+
+        <Separator className="border-white/20" />
+
+        {/* Sección de likes*/}
+        <LikesSection 
+        likes={likes} 
+        listId={list.id} 
+        onToggleLike={onToggleLike} 
+        initialLiked={initialLiked} 
+        />
 
         <Separator className="border-white/20" />
 

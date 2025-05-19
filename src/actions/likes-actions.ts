@@ -1,6 +1,6 @@
  "use server";
 
-import { and, eq } from "drizzle-orm"; // tu tabla intermedia de likes
+import { and, eq, sql } from "drizzle-orm"; // tu tabla intermedia de likes
 import { createId } from "@paralleldrive/cuid2";
 import { Likes } from "@/db/schema";
 import { db } from "@/db";
@@ -15,13 +15,14 @@ export const likeList = async (listId: string, userId: string) => {
   await db
     .insert(Likes)
     .values({
-      id: createId(),
       list_id: listId,
       user_id: userId,
     })
-    .onConflictDoNothing({
-      target: [Likes.user_id, Likes.list_id],
-    });
+
+    return {
+      success: true,
+      message: "Like added successfully",
+    }
 };
 
 /**
@@ -75,4 +76,18 @@ export const getLikesWithClerk = async (
   );
 
   return likesWithUser;
+};
+
+
+/**
+ * Recupera la cantidad de likes en una lista
+ */
+export const countLikesForList = async (listId: string): Promise<number> => {
+  const [{ count }] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(Likes)
+    .where(eq(Likes.list_id, listId))
+    .all();
+
+  return typeof count === "string" ? parseInt(count, 10) : count;
 };

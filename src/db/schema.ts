@@ -161,9 +161,7 @@ export const Likes = sqliteTable("likes", {
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-}, (table) => ({
-  unique_user_list: uniqueIndex("likes_user_list_unique").on(table.user_id, table.list_id),
-}));
+});
 
 export const likeRelations = relations(Likes, ({ one }) => ({
   user: one(Users, {
