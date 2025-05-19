@@ -14,3 +14,11 @@ export async function getUserSharedOrganizations(userId: string) {
   return userOrgs;
 
 }
+
+export async function getUserClerk (userId: string) {
+  const clerk = await clerkClient();
+
+  const userResponse = await clerk.users.getUser(userId);
+
+  return userResponse;
+}

@@ -1,9 +1,10 @@
 "use server";
 
 import { clerkClient } from "@clerk/nextjs/server";
-import { and, eq, notInArray, or } from "drizzle-orm";
+import { and, desc, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
 import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
+import { ListWithBooks } from "@/types/models/list-books";
 
 export interface response<T> {
   success: boolean;
@@ -474,3 +475,93 @@ export const deleteBookFromList = async (
     };
   }
 }
+
+export const getAllLists = async (): Promise<response<ListWithBooks[]>> => {
+  try {
+    // 1) traemos todas las listas públicas
+    const lists = await db
+      .select({
+        id: Lists.id,
+        user_id: Lists.user_id,
+        slug: Lists.slug,
+        title: Lists.title,
+        description: Lists.description,
+        is_public: Lists.is_public,
+        comments_enabled: Lists.comments_enabled,
+        organization_id: Lists.organization_id,
+        createdAt: Lists.createdAt,
+        updatedAt: Lists.updatedAt,
+      })
+      .from(Lists)
+      .where(eq(Lists.is_public, true))
+      .orderBy(desc(Lists.createdAt))
+      .all();
+
+    if (lists.length === 0) {
+      return {
+        success: true,
+        message: "No lists found",
+        data: [],
+      };
+    }
+
+    // 2) recuperamos todos los últimos 5 libros de una vez
+    const listIds = lists.map((l) => l.id);
+    const rawBooks = await Promise.all(
+      listIds.map(async (listId) => {
+        const recents = await db
+          .select({
+            id:   Books.id,
+            title: Books.title,
+            author: Books.author,
+            cover_url: Books.cover_url,
+            addedAt: ListBooks.addedAt,
+          })
+          .from(ListBooks)
+          .leftJoin(Books, eq(Books.id, ListBooks.book_id))
+          .where(eq(ListBooks.list_id, listId))
+          .orderBy(desc(ListBooks.addedAt))
+          .limit(6)
+          .all();
+
+        return { listId, books: recents };
+      })
+    );
+
+    // 3) montamos el array final
+    const data: ListWithBooks[] = lists.map((list) => {
+      const match = rawBooks.find((rb) => rb.listId === list.id);
+      const books = (match?.books ?? [])
+        .filter(
+          (b) =>
+            b.id !== null &&
+            b.title !== null &&
+            b.author !== null &&
+            b.cover_url !== null
+        )
+        .map((b) => ({
+          id: b.id as string,
+          title: b.title as string,
+          author: b.author as string,
+          cover_url: b.cover_url as string,
+          addedAt: b.addedAt,
+        }));
+      return {
+        ...list,
+        books,
+      };
+    });
+
+    return {
+      success: true,
+      message: "Lists retrieved successfully",
+      data,
+    };
+  } catch (error: unknown) {
+    console.error("Error retrieving all lists:", error);
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the lists",
+    };
+  }
+};
