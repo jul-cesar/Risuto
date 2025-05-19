@@ -97,7 +97,7 @@ export function BookListDeletable({
       <h2 className="flex items-center text-lg font-medium mb-4">
         <span className="mr-2">📚</span> Books in this list
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
         <SearchBooksModal
           listId={listId}
           trigger={

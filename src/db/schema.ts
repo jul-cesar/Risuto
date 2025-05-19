@@ -15,7 +15,6 @@ export const Users = sqliteTable("users", {
 });
 
 
-
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
 }));
@@ -132,6 +131,27 @@ export const bookGenresRelations = relations(BookGenres, ({ one }) => ({
   }),
 }));
 
+export const BookComments = sqliteTable("book_comments", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  book_id: text().notNull(),
+  commenter_name: text().notNull(),
+  text: text().notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull()
+    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+});
+
+export const bookCommentRelations = relations(BookComments, ({ one }) => ({
+  book: one(Books, {
+    fields: [BookComments.book_id],
+    references: [Books.id],
+  }),
+}));
+
 export type User = typeof Users.$inferSelect;
 export type NewUser = typeof Users.$inferInsert;
 
@@ -154,3 +174,6 @@ export type NewGenre = typeof Genres.$inferInsert;
 
 export type BookGenre = typeof BookGenres.$inferSelect;
 export type NewBookGenre = typeof BookGenres.$inferInsert;
+
+export type BookComment = typeof BookComments.$inferSelect;
+export type NewBookComment = typeof BookComments.$inferInsert;

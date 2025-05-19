@@ -7,7 +7,7 @@ export function BookCard({ book }: { book: Book | null }) {
   if (!book) return null;
   return (
     <Link href={`/books/${book.id}`} className="flex-shrink-0 w-48">
-      <Card className="p-2 h-full flex flex-col transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer">
+      <Card className="md:p-2  h-full flex flex-col transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer">
         <CardContent className="p-0 h-56 bg-zinc-800 rounded-t-lg overflow-hidden relative">
           <Image
             src={book.cover_url}

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { Book, BookGenres, Books, Genres, ListBooks } from "@/db/schema";
+import { Book, BookComment, BookComments, BookGenres, Books, Genres, ListBooks } from "@/db/schema";
 import { desc, eq, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
@@ -158,6 +158,73 @@ export const getBookGenres = async (bookId: string): Promise<response<{ genre: s
     return {
       success: false,
       message: "An unexpected error occurred while retrieving the genres",
+    };
+  }
+};
+
+export const createCommentBook = async (
+  text: string,
+  commenterName: string,
+  bookId: string
+): Promise<response<void>> => {
+  try {
+    if (!text || !commenterName || !bookId) {
+      return {
+        success: false,
+        message: "All fields are required",
+      };
+    }
+
+    await db.insert(BookComments).values({
+      text,
+      commenter_name: commenterName,
+      book_id: bookId,
+    });
+
+    return {
+      success: true,
+      message: "Comment created successfully",
+    };
+  } catch (error) {
+    console.error(
+      "Error creating comment:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while creating the comment",
+    };
+  }
+}
+
+export const getBookComments = async (bookId: string): Promise<response<BookComment[]>> => {
+  try {
+    if (!bookId) {
+      return {
+        success: false,
+        message: "Book ID is required",
+      };
+    }
+
+    const comments = await db
+      .select()
+      .from(BookComments)
+      .where(eq(BookComments.book_id, bookId))
+      .orderBy(desc(BookComments.createdAt));
+
+    return {
+      success: true,
+      message: comments.length > 0 ? "Comments retrieved successfully" : "No comments found for this book",
+      data: comments,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving book comments:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the comments",
     };
   }
 };
