@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, SQLiteColumn, sqliteTable, SQLiteTableWithColumns, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const Users = sqliteTable("users", {
   id: text().primaryKey().$defaultFn(() => createId()),
@@ -17,6 +17,7 @@ export const Users = sqliteTable("users", {
 
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
+  likes: many(Likes),
 }));
 
 export const Books = sqliteTable("books", {
@@ -53,11 +54,12 @@ export const Lists = sqliteTable("lists", {
   
 });
 
-export const listRelations = relations(Lists, ({ one }) => ({
+export const listRelations = relations(Lists, ({ one, many }) => ({
   user: one(Users, {
     fields: [Lists.user_id],
     references: [Users.id],
   }),
+  likes: many(Likes),  
 }));
 
 export const ListBooks = sqliteTable("list_books", {
@@ -152,6 +154,28 @@ export const bookCommentRelations = relations(BookComments, ({ one }) => ({
   }),
 }));
 
+export const Likes = sqliteTable("likes", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  user_id: text().notNull(),
+  list_id: text().notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+}, (table) => ({
+  unique_user_list: uniqueIndex("likes_user_list_unique").on(table.user_id, table.list_id),
+}));
+
+export const likeRelations = relations(Likes, ({ one }) => ({
+  user: one(Users, {
+    fields: [Likes.user_id],
+    references: [Users.id],
+  }),
+  list: one(Lists, {
+    fields: [Likes.list_id],
+    references: [Lists.id],
+  }),
+}));
+
 export type User = typeof Users.$inferSelect;
 export type NewUser = typeof Users.$inferInsert;
 
@@ -177,3 +201,7 @@ export type NewBookGenre = typeof BookGenres.$inferInsert;
 
 export type BookComment = typeof BookComments.$inferSelect;
 export type NewBookComment = typeof BookComments.$inferInsert;
+
+export type Like = typeof Likes.$inferSelect;
+export type NewLike = typeof Likes.$inferInsert;
+
