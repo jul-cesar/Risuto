@@ -102,10 +102,7 @@ export const createList = async (list: NewList): Promise<response<List>> => {
           'Raw Clerk error:',
           JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
         );
-        // Manejo de error específico de Clerk
-        if (err instanceof ClerkAPIResponseError) {
-          console.error('Clerk API errors:', err.errors);
-        }
+        
         return {
           success: false,
           message:
