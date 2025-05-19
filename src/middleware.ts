@@ -1,29 +1,38 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const protectedRoutes = createRouteMatcher([
-  "/dashboard(.*)",  
-  "/lists/:path*",      // /lists/a o /lists/favoritas?shared=true
+  "/dashboard(.*)",
+  "/lists/(.*)",    // todas las /lists/*
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { pathname, searchParams } = req.nextUrl;
 
-  // Listas públicas (por slug)
-  if (pathname.startsWith("/lists/") && !searchParams.has("shared")) {
-    // Supón que si la ruta es /lists/[slug] y la lista es pública,
-    // no protegemos: simplemente Next.js cargará la página públicamente.
+  if (pathname.startsWith('/accept-invitation')) {
     return NextResponse.next();
   }
 
-  // Listas privadas
-  if (pathname.startsWith("/lists/") && searchParams.has("shared")) {
-    // Si tienen ?shared=true, permitimos ver la página,
-    // pero para comentar se chequeará sesión en cliente.
+  // 1) Listas públicas sin params → NEXT
+  if (
+    pathname.startsWith("/lists/") &&
+    !searchParams.has("shared") &&
+    !searchParams.has("__clerk_status") &&
+    !searchParams.has("__clerk_ticket")
+  ) {
     return NextResponse.next();
   }
 
-  // Otras rutas protegidas (dashboard, books, etc.)
+  // 2) Flujo de invitación Clerk → NEXT
+  if (
+    pathname.startsWith("/lists/") &&
+    searchParams.get("__clerk_status") === "sign_in" &&
+    searchParams.has("__clerk_ticket")
+  ) {
+    return NextResponse.next();
+  }
+
+  // 3) Resto de rutas protegidas (dashboard, API, listas privadas sin invite)
   if (protectedRoutes(req)) {
     await auth.protect();  // redirige al sign-in si no hay sesión
   }

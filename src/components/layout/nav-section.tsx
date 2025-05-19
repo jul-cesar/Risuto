@@ -28,7 +28,10 @@ function AuthNavLinks() {
     <SignedIn>
       <nav className="flex items-center gap-4 text-foreground">
         <NavLink>Books</NavLink>
-        <NavLink>Lists</NavLink>
+        <Link 
+          href={"/lists"}
+
+        >Lists</Link>
       </nav>
     </SignedIn>
   );

@@ -32,7 +32,7 @@ export default function AddToListButtonClient({ bookId, userLists }: Props) {
       try {
         await addBookToList(listId, bookId);
         router.refresh();
-        toast.success("✅ Libro agregado", {
+        toast.success("Libro agregado", {
           action: {
             label: "Ver mi lista",
             onClick: () => router.push(`/lists/${listId}`),

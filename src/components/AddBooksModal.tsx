@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { getBooksFromList, searchBooksInDb } from "@/actions/book-actions";
-import { addBookToList } from "@/actions/lists-actions";
+import { addBookToList, deleteBookFromList } from "@/actions/lists-actions";
 import { Book } from "@/db/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, PlusCircle, Search, X } from "lucide-react";
@@ -195,6 +195,17 @@ export function SearchBooksModal({
                         </Button>
                       ) : (
                         <Button
+                          onClick={async () => {
+                            await deleteBookFromList(listId, book.id);
+                            toast.success(
+                              `"${book.title}" ha sido eliminado de tu lista.`
+                            );
+                            queryClient.invalidateQueries([
+                              "booksList",
+                              listId,
+                            ]);
+                            router.refresh();
+                          }}
                           size="sm"
                           variant="ghost"
                           className="h-8 px-2 bg-green-500 text-xs"

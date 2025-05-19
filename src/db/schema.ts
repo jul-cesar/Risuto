@@ -15,7 +15,6 @@ export const Users = sqliteTable("users", {
 });
 
 
-
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
 }));
@@ -25,6 +24,8 @@ export const Books = sqliteTable("books", {
   title: text().notNull(),
   author: text().notNull(),
   synopsis: text().notNull(),
+  publishedAt: text("published_at"),
+  pagesInfo: text("pages_info"),
   cover_url: text().notNull(),
   is_trending: integer({ mode: "boolean" }).default(false),
   createdAt: text("created_at")
@@ -40,6 +41,8 @@ export const Lists = sqliteTable("lists", {
   description: text(),
   is_public: integer({ mode: "boolean" }).notNull(),
   comments_enabled: integer({ mode: "boolean" }).notNull(),
+  organization_id: text(),
+
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -47,7 +50,7 @@ export const Lists = sqliteTable("lists", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`)
     .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    organization_id: text(),
+  
 });
 
 export const listRelations = relations(Lists, ({ one }) => ({
@@ -98,7 +101,7 @@ export const commentRelations = relations(Comments, ({ one }) => ({
 
 export const Genres = sqliteTable("genres", {
   id: text().primaryKey().$defaultFn(() => createId()),
-  name: text().notNull().unique(),
+  name: text().notNull().unique(), // Define el índice único aquí
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -128,6 +131,27 @@ export const bookGenresRelations = relations(BookGenres, ({ one }) => ({
   }),
 }));
 
+export const BookComments = sqliteTable("book_comments", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  book_id: text().notNull(),
+  commenter_name: text().notNull(),
+  text: text().notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: text("updated_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull()
+    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+});
+
+export const bookCommentRelations = relations(BookComments, ({ one }) => ({
+  book: one(Books, {
+    fields: [BookComments.book_id],
+    references: [Books.id],
+  }),
+}));
+
 export type User = typeof Users.$inferSelect;
 export type NewUser = typeof Users.$inferInsert;
 
@@ -150,3 +174,6 @@ export type NewGenre = typeof Genres.$inferInsert;
 
 export type BookGenre = typeof BookGenres.$inferSelect;
 export type NewBookGenre = typeof BookGenres.$inferInsert;
+
+export type BookComment = typeof BookComments.$inferSelect;
+export type NewBookComment = typeof BookComments.$inferInsert;

@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState } from "react";
+
+import { createCommentBook } from "@/actions/book-actions";
+import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
-import { addComment } from "../actions/add-comment";
 
 function FormButton() {
   const { pending } = useFormStatus();
@@ -47,25 +49,26 @@ function FormButton() {
 
 // Componente del formulario (Client)
 export function CommentForm({
-  listId,
+  bookId,
   username,
 }: {
-  listId: string;
+  bookId: string;
   username: string;
 }) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-
+  const router = useRouter();
   async function handleFormAction(formData: FormData) {
     const text = formData.get("text") as string;
     if (!text.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await addComment(text, username, listId);
+      await createCommentBook(text, username, bookId);
       setNewComment("");
       formRef.current?.reset();
+      router.refresh();
     } finally {
       setIsSubmitting(false);
     }

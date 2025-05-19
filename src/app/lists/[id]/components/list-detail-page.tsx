@@ -2,7 +2,7 @@
 
 import { Separator } from "@/components/ui/separator";
 import { Book, Comment, List } from "@/db/schema";
-import { BookList } from "./book-list";
+import { BookListDeletable } from "./BookListDeletable";
 import CommentSection from "./comment-section";
 import { ListHeader } from "./list-header";
 
@@ -41,7 +41,7 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
 
         {/* Libros de la lista */}
-        <BookList books={books} listId={list.id}/>
+        <BookListDeletable books={books} listId={list.id} canDelete={true} />
 
         <Separator className="border-white/20" />
 
