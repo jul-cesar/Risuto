@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BookMarked,
   BookOpen,
   Search,
   Star,
@@ -145,19 +144,6 @@ export default async function LandingPage() {
                 para encontrar tu próxima obsesión.
               </p>
             </div>
-
-            <div className="bg-card rounded-xl p-6 transition-transform hover:scale-105 border border-border">
-              <div className="bg-primary/20 p-3 rounded-full w-fit mb-4">
-                <BookMarked className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">
-                Seguimiento de Series
-              </h3>
-              <p className="text-muted-foreground">
-                Recibe notificaciones cuando se publiquen nuevos volúmenes de
-                tus series favoritas.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -198,9 +184,6 @@ export default async function LandingPage() {
           >
             Crear cuenta gratis
           </Button>
-          <p className="mt-4 text-primary-foreground/80">
-            No se requiere tarjeta de crédito. Cancela cuando quieras.
-          </p>
         </div>
       </section>
 
