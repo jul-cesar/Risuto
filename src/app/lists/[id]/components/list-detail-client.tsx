@@ -1,5 +1,4 @@
 "use client";
-import { likeList, unlikeList } from "@/actions/likes-actions";
 import { Book, Comment, List } from "@/db/schema";
 import { LikeWithClerkUser } from "@/types/models/list-likes";
 import { useAuth } from "@clerk/nextjs";
@@ -14,8 +13,6 @@ interface ListDetailClientProps {
   initialComments: Comment[];
   likes: LikeWithClerkUser[];
   username: string;
-  initialLiked: boolean;
-  userAvatar: string;
   listOwner:
     | {
         id: string;
@@ -37,11 +34,9 @@ export function ListDetailClient({
   isSignedIn,
   initialComments,
   username,
-  initialLiked,
-  listOwner
+  listOwner,
 }: ListDetailClientProps) {
   const [copied, setCopied] = useState(false);
-  const [liked, setLiked] = useState(initialLiked);
   const { userId } = useAuth();
 
   const handleCopy = async () => {
@@ -56,20 +51,6 @@ export function ListDetailClient({
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleToggleLike = async (newState: boolean) => {
-    if (!userId) return;
-    if (newState) {
-      await likeList(list.id, userId);
-      // actualizar localmente:
-      setLiked(true);
-    } else {
-      await unlikeList(list.id, userId);
-      // actualizar localmente:
-      setLiked(false);
-    }
-    setLiked(newState);
   };
 
   return (

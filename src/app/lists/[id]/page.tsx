@@ -41,12 +41,12 @@ export default async function ListPage({
   params,
   searchParams,
 }: {
-  params: { id: string }; // NO Promise aquí
+  params: { id: string };
   searchParams?: { shared?: string; __clerk_ticket?: string };
 }) {
   const { id: slugOrId } = await params;
 
-  // 2. Await explícito de searchParams
+  // 1. Await explícito de searchParams
   const sp = searchParams ? await Promise.resolve(searchParams) : {};
   const { __clerk_ticket } = sp;
 
@@ -77,8 +77,6 @@ export default async function ListPage({
   const commentsList = await getComments(list.id);
   const likes = await getLikesWithClerk(list.id);
   const listOwner = (await getUser(list.user_id)).data;
-  console.log(list.user_id);
-  console.log("listOwner", listOwner);
 
   return (
     <>
@@ -87,12 +85,10 @@ export default async function ListPage({
         list={list}
         books={books}
         likes={likes}
-        initialLiked={likes.some((u) => u.id === userId)}
         isOwner={isOwner}
         isSignedIn={!!userId}
         initialComments={commentsList}
         username={user?.username || "Anónimo"}
-        userAvatar={user?.imageUrl || ""}
       />
     </>
   );

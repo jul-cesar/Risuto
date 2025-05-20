@@ -18,8 +18,6 @@ export interface ListDetailPageProps {
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
   username: string;
-  onToggleLike: (newState: boolean) => Promise<void>;
-  initialLiked: boolean;
   listOwner:
     | {
         id: string;
@@ -43,9 +41,6 @@ export function ListDetailPage({
   copied,
   handleCopy,
   username,
-  onToggleLike,
-  initialLiked,
-
   listOwner,
 }: ListDetailPageProps) {
   return (
@@ -53,7 +48,7 @@ export function ListDetailPage({
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Cabecera de la lista */}
         <ListHeader
-          listOwner={listOwner}
+        listOwner={listOwner}
           list={list}
           isOwner={isOwner}
           copied={copied}
@@ -68,16 +63,7 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
 
         {/* Sección de likes*/}
-        <LikesSection
-          likes={likes}
-          listId={list.id}
-          onToggleLike={onToggleLike}
-          initialLiked={initialLiked}
-        <LikesSection 
-        likes={likes} 
-        listId={list.id} 
-        />
-
+        <LikesSection likes={likes} listId={list.id} />
 
         {/* Sección de comentarios */}
         {list.comments_enabled && (
