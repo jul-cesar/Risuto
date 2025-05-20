@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState } from "react";
 
 import { createCommentBook } from "@/actions/book-actions";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 
@@ -59,13 +60,14 @@ export function CommentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { user } = useUser();
   async function handleFormAction(formData: FormData) {
     const text = formData.get("text") as string;
     if (!text.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await createCommentBook(text, username, bookId);
+      await createCommentBook(text, username, bookId, user?.id ?? "");
       setNewComment("");
       formRef.current?.reset();
       router.refresh();

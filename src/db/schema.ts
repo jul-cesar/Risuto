@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import { relations, sql } from "drizzle-orm";
-import { integer, SQLiteColumn, sqliteTable, SQLiteTableWithColumns, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const Users = sqliteTable("users", {
   id: text().primaryKey().$defaultFn(() => createId()),
@@ -18,6 +18,8 @@ export const Users = sqliteTable("users", {
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
   likes: many(Likes),
+  comments: many(Comments), // Agregamos la relación con Comments
+  bookComments: many(BookComments), // Agregamos la relación con BookComments
 }));
 
 export const Books = sqliteTable("books", {
@@ -84,6 +86,7 @@ export const listBooksRelations = relations(ListBooks, ({ one }) => ({
 export const Comments = sqliteTable("comments", {
   id: text().primaryKey().$defaultFn(() => createId()),
   list_id: text().notNull(),
+  user_id: text().notNull(), // Agregamos user_id para relacionar con el usuario
   commenter_name: text().notNull(),
   text: text().notNull(),
   createdAt: text("created_at")
@@ -98,6 +101,10 @@ export const commentRelations = relations(Comments, ({ one }) => ({
   list: one(Lists, {
     fields: [Comments.list_id],
     references: [Lists.id],
+  }),
+  user: one(Users, { // Agregamos la relación con el usuario
+    fields: [Comments.user_id],
+    references: [Users.id],
   }),
 }));
 
@@ -136,6 +143,7 @@ export const bookGenresRelations = relations(BookGenres, ({ one }) => ({
 export const BookComments = sqliteTable("book_comments", {
   id: text().primaryKey().$defaultFn(() => createId()),
   book_id: text().notNull(),
+  user_id: text().notNull(), // Agregamos user_id para relacionar con el usuario
   commenter_name: text().notNull(),
   text: text().notNull(),
   createdAt: text("created_at")
@@ -151,6 +159,10 @@ export const bookCommentRelations = relations(BookComments, ({ one }) => ({
   book: one(Books, {
     fields: [BookComments.book_id],
     references: [Books.id],
+  }),
+  user: one(Users, { // Agregamos la relación con el usuario
+    fields: [BookComments.user_id],
+    references: [Users.id],
   }),
 }));
 

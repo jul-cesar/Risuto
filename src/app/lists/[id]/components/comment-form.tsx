@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@clerk/nextjs";
 import { useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { addComment } from "../actions/add-comment";
@@ -56,14 +57,14 @@ export function CommentForm({
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-
+  const { user } = useUser();
   async function handleFormAction(formData: FormData) {
     const text = formData.get("text") as string;
     if (!text.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await addComment(text, username, listId);
+      await addComment(text, username, listId, user?.id ?? "");
       setNewComment("");
       formRef.current?.reset();
     } finally {

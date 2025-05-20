@@ -1,13 +1,14 @@
 'use server';
 
-import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { Comments } from "@/db/schema";
+import { revalidatePath } from "next/cache";
 
 export async function addComment(
   text: string,
   commenterName: string,
-  listId: string
+  listId: string,
+  userId: string
 ) {
   // Validaciones
   if (!text || !text.trim()) {
@@ -31,6 +32,7 @@ export async function addComment(
         text: text.trim(),
         commenter_name: commenterName,
         list_id: listId,
+        user_id: userId,
         createdAt: now,
         updatedAt: now,
       })

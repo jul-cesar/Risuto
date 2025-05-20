@@ -1,10 +1,10 @@
 "use server";
 
+import { ListWithBooks } from "@/types/models/list-books";
 import { clerkClient } from "@clerk/nextjs/server";
 import { and, desc, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
 import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
-import { ListWithBooks } from "@/types/models/list-books";
 
 export interface response<T> {
   success: boolean;
@@ -61,6 +61,20 @@ export const createList = async (list: NewList): Promise<response<List>> => {
       message: 'List data is required and cannot be empty',
     };
   }
+  if(list.slug){ 
+const listExist = await db.query.Lists.findFirst({
+    where: (Lists, { eq }) => eq(Lists.slug , list.slug ?? ""),
+  });
+    
+  if (listExist) {
+    return {
+      success: false,
+      message: 'List with this slug already exists',
+    };
+  }
+  }
+  
+
 
   try {
     // 1. Iniciar cliente de Clerk
@@ -151,7 +165,8 @@ export const createList = async (list: NewList): Promise<response<List>> => {
 
 export const editList = async (
   listId: string,
-  updatedList: Partial<NewList>
+  updatedList: Partial<NewList>,
+  userId: string
 ): Promise<response<List>> => {
   try {
     if (!listId || !updatedList || Object.keys(updatedList).length === 0) {
@@ -160,6 +175,23 @@ export const editList = async (
         message: "List ID and updated data are required",
       };
     }
+    const list = await db
+      .select()
+      .from(Lists)
+      .where(eq(Lists.id, listId))
+      .get();
+      if(!list) {
+        return {
+          success: false,
+          message: "List not found",
+        };
+      } 
+      if(list.user_id !== userId) {
+        return {
+          success: false,
+          message: "You are not authorized to edit this list",
+        };
+      }
 
     const updated = await db
       .update(Lists)
@@ -565,3 +597,5 @@ export const getAllLists = async (): Promise<response<ListWithBooks[]>> => {
     };
   }
 };
+
+    

@@ -32,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 // Define el esquema de validación con Zod
@@ -75,12 +76,13 @@ export function EditListDialog({ list, trigger }: EditListDialogProps) {
       comments_enabled: list.comments_enabled,
     },
   });
+  const { user } = useUser();
 
   const onSubmit = async (values: EditListValues) => {
     setIsSubmitting(true);
 
     try {
-      const result = await editList(list.id, values);
+      const result = await editList(list.id, values, user?.id ?? "");
       if (!result.success) {
         toast.error(result.message);
         return;

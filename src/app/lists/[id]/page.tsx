@@ -1,12 +1,12 @@
 import { getBooksFromList } from "@/actions/book-actions";
+import { getLikesWithClerk } from "@/actions/likes-actions";
 import { getListBySlugOrId } from "@/actions/lists-actions";
+import { getUser } from "@/actions/user-actions";
 import { db } from "@/db";
 import { Comments } from "@/db/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { ListDetailClient } from "./components/list-detail-client";
-import { clerkClient } from "@clerk/nextjs/server";
-import { getLikesWithClerk, likeList, unlikeList } from "@/actions/likes-actions";
 
 export const getComments = async (listId: string) => {
   return await db
@@ -22,9 +22,10 @@ async function isUserActiveMember(
 ): Promise<boolean> {
   // Obtenemos el listado de membership de Clerk
   const clerk = await clerkClient();
-  const { data: membershipData } = await clerk.organizations.getOrganizationMembershipList({
-    organizationId,
-  });
+  const { data: membershipData } =
+    await clerk.organizations.getOrganizationMembershipList({
+      organizationId,
+    });
 
   // membershipData es un array de objetos con info de cada miembro
   // por ejemplo: { id, role, publicUserData: { id, identifier, ... }, ... }
@@ -40,16 +41,14 @@ export default async function ListPage({
   params,
   searchParams,
 }: {
-  params: { id: string };                             
+  params: { id: string };
   searchParams?: { shared?: string; __clerk_ticket?: string };
 }) {
-  const { id: slugOrId } = await params;  
+  const { id: slugOrId } = await params;
 
   // 1. Await explícito de searchParams
-  const sp = searchParams
-    ? await Promise.resolve(searchParams)
-    : {};
-  const { __clerk_ticket } = sp;   
+  const sp = searchParams ? await Promise.resolve(searchParams) : {};
+  const { __clerk_ticket } = sp;
 
   // 2) Fetch de lista y datos relacionados
   const listRes = await getListBySlugOrId(slugOrId);
@@ -77,10 +76,12 @@ export default async function ListPage({
   const books = (await getBooksFromList(list.id)).data ?? [];
   const commentsList = await getComments(list.id);
   const likes = await getLikesWithClerk(list.id);
+  const listOwner = (await getUser(list.user_id)).data;
 
   return (
     <>
       <ListDetailClient
+        listOwner={listOwner}
         list={list}
         books={books}
         likes={likes}
