@@ -1,8 +1,8 @@
 import { getUserClerk } from "@/actions/clerk-actions";
 import { getAllLists } from "@/actions/lists-actions";
 import { ListCard } from "./components/list-card";
-import { Tabs } from "@radix-ui/react-tabs";
-import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getListsLikedByUser } from "@/actions/likes-actions";
 import { currentUser } from "@clerk/nextjs/server";
 

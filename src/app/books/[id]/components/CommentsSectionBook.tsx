@@ -1,9 +1,11 @@
 import { Separator } from "@/components/ui/separator";
-import { BookComment } from "@/db/schema";
-import { formatCustomDate } from "@/lib/utils";
+
 import { SignInButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import { MessageSquare } from "lucide-react";
+
+import { BookComment } from "@/db/schema";
+import { CommentItem } from "./CommentBookItem";
 import { CommentForm } from "./CommentFormBook";
 
 export default async function CommentSectionBook({
@@ -55,16 +57,5 @@ export default async function CommentSectionBook({
         </div>
       )}
     </section>
-  );
-}
-
-export function CommentItem({ comment }: { comment: BookComment }) {
-  return (
-    <div className="bg-card rounded-md p-4 space-y-1 text-card-foreground">
-      <p className="text-xs text-muted-foreground">
-        {comment.commenter_name} &bull; {formatCustomDate(comment.createdAt)}
-      </p>
-      <p className="text-sm">{comment.text}</p>
-    </div>
   );
 }

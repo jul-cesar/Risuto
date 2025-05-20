@@ -304,3 +304,101 @@ export async function getRelatedBooks(bookId: string) {
   }
 }
 
+
+export const deleteBookComment = async (commentId: string, userId:string): Promise<response<void>> => {
+  try {
+    if (!commentId || !userId) {
+      return {
+        success: false,
+        message: "Comment ID and User ID are required",
+      };
+    }
+
+    const comment = await db.query.BookComments.findFirst({
+      where: (BookComments, { eq }) => eq(BookComments.id, commentId),
+    });
+
+    if (!comment) {
+      return {
+        success: false,
+        message: "Comment not found",
+      };
+    }
+
+    if (comment.user_id !== userId) {
+      return {
+        success: false,
+        message: "You do not have permission to delete this comment",
+      };
+    }
+
+    await db.delete(BookComments).where(eq(BookComments.id, commentId));
+
+    return {
+      success: true,
+      message: "Comment deleted successfully",
+    };
+  } catch (error) {
+    console.error(
+      "Error deleting comment:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while deleting the comment",
+    };
+  }
+}
+
+export const editBookComment = async (
+  commentId: string,
+  userId: string,
+  newText: string
+): Promise<response<void>> => {
+  try {
+    if (!commentId || !userId || !newText) {
+      return {
+        success: false,
+        message: "Comment ID, User ID, and new text are required",
+      };
+    }
+
+    const comment = await db.query.BookComments.findFirst({
+      where: (BookComments, { eq }) => eq(BookComments.id, commentId),
+    });
+
+    if (!comment) {
+      return {
+        success: false,
+        message: "Comment not found",
+      };
+    }
+
+    if (comment.user_id !== userId) {
+      return {
+        success: false,
+        message: "You do not have permission to edit this comment",
+      };
+    }
+
+    await db
+      .update(BookComments)
+      .set({ text: newText })
+      .where(eq(BookComments.id, commentId));
+
+    return {
+      success: true,
+      message: "Comment edited successfully",
+    };
+  } catch (error) {
+    console.error(
+      "Error editing comment:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while editing the comment",
+    };
+  }
+}
+
