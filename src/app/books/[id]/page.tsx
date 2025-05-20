@@ -1,6 +1,5 @@
 // src/app/books/[id]/page.tsx
-import { getBookComments } from "@/actions/book-actions";
-import CommentSection from "@/app/lists/[id]/components/comment-section";
+import { getBookComments, getRelatedBooks } from "@/actions/book-actions";
 import { db } from "@/db";
 import { Books } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,6 +8,7 @@ import { BookCover } from "./components/book-cover";
 import { BookInfo } from "./components/book-info";
 import AddToListButton from "./components/button-add-to-list";
 import CommentSectionBook from "./components/CommentsSectionBook";
+import { RelatedBooks } from "./components/RelatedBooksSection";
 
 const getBookById = async (id: string) => {
   return await db
@@ -29,6 +29,7 @@ export default async function BookDetail({
   const { id } = await params;
   const book = await getBookById(id);
   const comments = (await getBookComments(id)).data;
+  const relateds = (await getRelatedBooks(id)).data;
 
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -42,7 +43,8 @@ export default async function BookDetail({
         <ActionBar>
           <AddToListButton bookId={book.id} />
         </ActionBar>
-        <CommentSectionBook comments={comments}  bookId={id}   />
+        <RelatedBooks books={relateds ?? []} />
+        <CommentSectionBook comments={comments} bookId={id} />
       </div>
     </main>
   );

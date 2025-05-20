@@ -23,12 +23,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 // Define the validation schema with Zod
 const listFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional(),
   visibility: z.enum(["public", "private"]),
   commentsEnabled: z.boolean(),
   slug: z.string().optional(),
@@ -78,6 +79,7 @@ export function ListForm({
     const res = await createList(newList);
     if (!res.success) {
       setLoading(false);
+      toast.error(res.message);
       return;
     }
     router.push(`/lists/${res.data?.id}`);

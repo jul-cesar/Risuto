@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { Book, BookComment, BookComments, BookGenres, Books, Genres, ListBooks } from "@/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
 export const getTrendingBooks = async (): Promise<response<Book[]>> => {
@@ -165,7 +165,8 @@ export const getBookGenres = async (bookId: string): Promise<response<{ genre: s
 export const createCommentBook = async (
   text: string,
   commenterName: string,
-  bookId: string
+  bookId: string,
+  userId: string
 ): Promise<response<void>> => {
   try {
     if (!text || !commenterName || !bookId) {
@@ -179,6 +180,7 @@ export const createCommentBook = async (
       text,
       commenter_name: commenterName,
       book_id: bookId,
+      user_id: userId,  
     });
 
     return {
@@ -228,3 +230,77 @@ export const getBookComments = async (bookId: string): Promise<response<BookComm
     };
   }
 };
+
+
+export async function getRelatedBooks(bookId: string) {
+  try {
+    if (!bookId) {
+      return {
+        success: false,
+        message: "Book ID is required",
+      };
+    }
+
+    // Primero, obtener los géneros del libro base
+    const bookGenres = await db
+      .select({ genre_id: BookGenres.genre_id })
+      .from(BookGenres)
+      .where(eq(BookGenres.book_id, bookId));
+
+    const genreIds = bookGenres.map(bg => bg.genre_id);
+
+    if (genreIds.length === 0) {
+      return {
+        success: false,
+        message: "No genres found for the given book",
+        data: [],
+      };
+    }
+
+    // Buscar libros que comparten géneros con el libro base
+   
+    const relatedBooksWithCount = await db
+      .select({
+        book_id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        createdAt: Books.createdAt,
+        is_trending: Books.is_trending,
+        publishedAt: Books.publishedAt,
+        pagesInfo: Books.pagesInfo,
+        genreCount: sql`COUNT(DISTINCT ${BookGenres.genre_id})`.as('genreCount')
+      })
+      .from(Books)
+      .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+      .where(
+        and(
+          ne(Books.id, bookId),
+          inArray(BookGenres.genre_id, genreIds)
+        )
+      )
+      .groupBy(Books.id)
+      .having(sql`COUNT(DISTINCT ${BookGenres.genre_id}) >= 3`) // Al menos 3 géneros coincidentes
+      .orderBy(sql`genreCount DESC`, desc(Books.createdAt)) // Primero por número de coincidencias, luego por fecha
+      .limit(30);
+
+    return {
+      success: true,
+      message: relatedBooksWithCount.length > 0 
+        ? "Related books retrieved successfully" 
+        : "No books with at least 3 matching genres found",
+      data: relatedBooksWithCount,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving related books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving related books",
+    };
+  }
+}
+

@@ -1,12 +1,12 @@
 // src/app/lists/[id]/components/list-detail-page.tsx
 
 import { Separator } from "@/components/ui/separator";
-import { Book, Comment, Like, List } from "@/db/schema";
+import { Book, Comment, List } from "@/db/schema";
+import { LikeWithClerkUser } from "@/types/models/list-likes";
 import { BookListDeletable } from "./BookListDeletable";
 import CommentSection from "./comment-section";
-import { ListHeader } from "./list-header";
 import { LikesSection } from "./likes-section";
-import { LikeWithClerkUser } from "@/types/models/list-likes";
+import { ListHeader } from "./list-header";
 
 export interface ListDetailPageProps {
   list: List;
@@ -20,6 +20,17 @@ export interface ListDetailPageProps {
   username: string;
   onToggleLike: (newState: boolean) => Promise<void>;
   initialLiked: boolean;
+  listOwner:
+    | {
+        id: string;
+        clerk_user_id: string;
+        name: string;
+        avatar_url: string | null;
+        bio: string;
+        createdAt: string;
+        email: string;
+      }
+    | undefined;
 }
 
 export function ListDetailPage({
@@ -34,12 +45,15 @@ export function ListDetailPage({
   username,
   onToggleLike,
   initialLiked,
+
+  listOwner,
 }: ListDetailPageProps) {
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Cabecera de la lista */}
         <ListHeader
+          listOwner={listOwner}
           list={list}
           isOwner={isOwner}
           copied={copied}
@@ -54,11 +68,11 @@ export function ListDetailPage({
         <Separator className="border-white/20" />
 
         {/* Sección de likes*/}
-        <LikesSection 
-        likes={likes} 
-        listId={list.id} 
-        onToggleLike={onToggleLike} 
-        initialLiked={initialLiked} 
+        <LikesSection
+          likes={likes}
+          listId={list.id}
+          onToggleLike={onToggleLike}
+          initialLiked={initialLiked}
         />
 
         <Separator className="border-white/20" />

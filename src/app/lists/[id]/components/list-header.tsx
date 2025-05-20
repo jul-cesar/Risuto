@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUser } from "@clerk/nextjs";
 import { formatDate } from "date-fns";
 import { Edit2, LinkIcon, Trash2, UsersIcon } from "lucide-react";
 import { useState } from "react";
@@ -22,6 +23,17 @@ interface ListHeaderProps {
   isOwner: boolean;
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  listOwner:
+    | {
+        id: string;
+        clerk_user_id: string;
+        name: string;
+        avatar_url: string | null;
+        bio: string;
+        createdAt: string;
+        email: string;
+      }
+    | undefined;
 }
 
 export function ListHeader({
@@ -29,33 +41,50 @@ export function ListHeader({
   isOwner,
   copied,
   handleCopy,
+  listOwner,
 }: ListHeaderProps) {
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const { user } = useUser();
 
   return (
     <header className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold">{list.title}</h1>
 
+        {/* Información del propietario de la lista */}
+        {listOwner && (
+          <div className="flex items-center gap-2">
+            <img
+              src={listOwner.avatar_url ?? ""}
+              alt={listOwner.name}
+              className="w-8 h-8 rounded-full"
+            />
+            <span className="text-sm text-gray-500">
+              {listOwner.name} (Owner)
+            </span>
+          </div>
+        )}
+
         {/* Barra de herramientas con botones de acción */}
         <TooltipProvider delayDuration={300}>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             {/* Botón de editar */}
-            <EditListDialog
-              list={list}
-              trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 rounded-full"
-                >
-                  <Edit2 className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">Edit</span>
-                </Button>
-              }
-            />
+            {list.user_id === user?.id && (
+              <EditListDialog
+                list={list}
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-3 rounded-full"
+                  >
+                    <Edit2 className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </Button>
+                }
+              />
+            )}
 
-            {/* Botón de compartir */}
             {list.is_public ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -94,19 +123,21 @@ export function ListHeader({
             <Separator orientation="vertical" className="h-8" />
 
             {/* Botón de eliminar */}
-            <DeleteListDialog
-              list={list}
-              trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">Delete</span>
-                </Button>
-              }
-            />
+            {list.user_id === user?.id && (
+              <DeleteListDialog
+                list={list}
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-3 rounded-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                }
+              />
+            )}
           </div>
         </TooltipProvider>
       </div>
