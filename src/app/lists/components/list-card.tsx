@@ -7,17 +7,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Book } from "@/db/schema";
+import { LockIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export const ListCard = ({ list }: any) => {
+
   return (
     <Link key={list.id} href={`/lists/${list.slug}`}>
       <Card className="transition hover:scale-[1.02] hover:shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <span className="inline-block w-2 h-2 bg-primary rounded-full" />
+          <CardTitle className="flex flex-row justify-between items-center gap-2 text-lg">
+            <div className = "flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-primary rounded-full" />
             {list.title}
+            </div>
+            {!list.is_public && (
+              <div>
+              <LockIcon/>
+            </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
