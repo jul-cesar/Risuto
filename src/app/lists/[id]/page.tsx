@@ -50,7 +50,7 @@ export default async function ListPage({
   const sp = searchParams ? await Promise.resolve(searchParams) : {};
   const { __clerk_ticket } = sp;
 
-  // 1) Fetch de lista y datos relacionados
+  // 2) Fetch de lista y datos relacionados
   const listRes = await getListBySlugOrId(slugOrId);
   const list = listRes.data;
   if (!list) {
@@ -60,7 +60,7 @@ export default async function ListPage({
   const user = await currentUser();
   const userId = user?.id;
 
-  // 2) Permisos
+  // 3) Permisos
   const isOwner = userId === list.user_id;
   const isMember =
     typeof userId === "string" && typeof list.organization_id === "string"
@@ -72,7 +72,7 @@ export default async function ListPage({
     return <div className="p-8">No autorizado</div>;
   }
 
-  // 3) Fetch de books y comments
+  // 4) Fetch de books y comments
   const books = (await getBooksFromList(list.id)).data ?? [];
   const commentsList = await getComments(list.id);
   const likes = await getLikesWithClerk(list.id);

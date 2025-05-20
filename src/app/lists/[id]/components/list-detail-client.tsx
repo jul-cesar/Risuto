@@ -78,14 +78,12 @@ export function ListDetailClient({
       list={list}
       books={books}
       likes={likes}
-      onToggleLike={handleToggleLike}
       isOwner={isOwner}
       isSignedIn={isSignedIn}
       comments={initialComments}
       copied={copied}
       handleCopy={handleCopy}
       username={username}
-      initialLiked={liked}
     />
   );
 }

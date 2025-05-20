@@ -13,37 +13,48 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LikeWithClerkUser } from "@/types/models/list-likes";
+import useListLikes from "../hooks/use-list-likes";
+import { useAuth } from "@clerk/nextjs";
 
 interface LikesSectionProps {
   listId: string;
   likes: LikeWithClerkUser[];
-  onToggleLike: (liked: boolean) => Promise<void>;
-  initialLiked: boolean;
 }
 
-export function LikesSection({ listId, likes, onToggleLike, initialLiked }: LikesSectionProps) {
-  const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(likes.length);
+export function LikesSection({ listId }: LikesSectionProps) {
+  const { userId } = useAuth()
+  const {
+    count,
+    likes,
+    userLike,
+    isLoading,
+    like,
+    unlike,
+  } = useListLikes(listId, "thumbs-up")
 
-  const handleLike = async () => {
-    await onToggleLike(!liked);
-    setLiked(!liked);
-    setCount((prev) => prev + (liked ? -1 : 1));
-  };
+  const isLiked = Boolean(userLike)
+
+  const handleClick = () => {
+    if (!userId) return
+    if (isLiked) unlike()
+    else like() 
+  }
+
+  if (isLoading) return <div>Loading...</div>
 
   return (
     <div className="flex items-center space-x-4">
       <Button
-        variant={liked ? "destructive" : "outline"}
+        variant={isLiked ? 'destructive' : 'outline'}
         size="sm"
-        onClick={handleLike}
+        onClick={handleClick}
       >
-        {liked ? "Unlike" : "Like"}
+        {isLiked ? 'Unlike' : 'Like'}
       </Button>
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="ghost" size="sm">
-            {count} Like{count !== 1 ? "s" : ""}
+            {count} Like{count !== 1 ? 's' : ''}
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-md">

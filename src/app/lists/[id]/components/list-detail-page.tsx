@@ -73,9 +73,11 @@ export function ListDetailPage({
           listId={list.id}
           onToggleLike={onToggleLike}
           initialLiked={initialLiked}
+        <LikesSection 
+        likes={likes} 
+        listId={list.id} 
         />
 
-        <Separator className="border-white/20" />
 
         {/* Sección de comentarios */}
         {list.comments_enabled && (
