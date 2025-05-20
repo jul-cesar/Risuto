@@ -1,12 +1,14 @@
 import { getUserClerk } from "@/actions/clerk-actions";
-import { getAllLists } from "@/actions/lists-actions";
+import { getAllLists, getCurrentUserLists } from "@/actions/lists-actions";
 import { ListCard } from "./components/list-card";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getListsLikedByUser } from "@/actions/likes-actions";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { currentUser } from "@clerk/nextjs/server";
 
-type ListDataItem = NonNullable<Awaited<ReturnType<typeof getAllLists>>["data"]>[0];
+type ListDataItem = NonNullable<
+  Awaited<ReturnType<typeof getAllLists>>["data"]
+>[0];
 
 interface ListWithBooksAndUser extends ListDataItem {
   user: {
@@ -18,11 +20,10 @@ interface ListWithBooksAndUser extends ListDataItem {
 }
 
 export default async function ListsPage() {
-  
   const user = await currentUser();
   const responseAllLists = await getAllLists();
   const allLists = responseAllLists.data ?? [];
-  
+
   const listsWithUser: ListWithBooksAndUser[] = await Promise.all(
     allLists.map(async (list) => {
       const u = await getUserClerk(list.user_id);
@@ -36,11 +37,19 @@ export default async function ListsPage() {
         },
       };
     })
-  ); 
+  );
 
-  const responselikedLists = await getListsLikedByUser(user?.id ?? "");
-  const likedLists = responselikedLists.data ?? [];
-   const listsLikedWithUser: ListWithBooksAndUser[] = await Promise.all(
+  // Combinamos las llamadas para obtener las listas del usuario y las listas que le gustan en un solo Promise.all
+  const [userListsResponse, likedListsResponse] = await Promise.all([
+    getCurrentUserLists(user?.id ?? ""),
+    getListsLikedByUser(user?.id ?? ""),
+  ]);
+
+  const userLists = userListsResponse.data ?? [];
+  const likedLists = likedListsResponse.data ?? [];
+
+  // Procesamos las listas que le gustan al usuario para incluir la información del usuario
+  const listsLikedWithUser: ListWithBooksAndUser[] = await Promise.all(
     likedLists.map(async (list) => {
       const u = await getUserClerk(list.user_id);
       return {
@@ -64,10 +73,10 @@ export default async function ListsPage() {
         </header>
 
         <Tabs defaultValue="All public lists">
-          <TabsList className ="grid w-full grid-cols-3 mb-12">
-            <TabsTrigger value ="All public lists">All public lists</TabsTrigger>
-            <TabsTrigger value ="My lists">My lists</TabsTrigger>
-            <TabsTrigger value ="Liked lists">Liked lists</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-12">
+            <TabsTrigger value="All public lists">All public lists</TabsTrigger>
+            <TabsTrigger value="My lists">My lists</TabsTrigger>
+            <TabsTrigger value="Liked lists">Liked lists</TabsTrigger>
           </TabsList>
           <TabsContent value="All public lists">
             {/* Lists */}
@@ -78,8 +87,11 @@ export default async function ListsPage() {
             </div>
           </TabsContent>
           <TabsContent value="My lists">
-            
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userLists?.map((list) => (
+                <ListCard key={list.id} list={list} />
+              ))}
+            </div>
           </TabsContent>
           <TabsContent value="Liked lists">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
