@@ -18,6 +18,7 @@ import { DeleteListDialog } from "./DeleteListDialog";
 import { EditListDialog } from "./EditListModa";
 import { InviteModal } from "./invite-modal";
 import Image from "next/image";
+import { OrgImage } from "./org-image";
 
 interface ListHeaderProps {
   list: List;
@@ -35,6 +36,8 @@ interface ListHeaderProps {
         email: string;
       }
     | undefined;
+    isLoaded: boolean;
+    organization: any;
 }
 
 export function ListHeader({
@@ -43,14 +46,28 @@ export function ListHeader({
   copied,
   handleCopy,
   listOwner,
+  isLoaded,
+  organization
 }: ListHeaderProps) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const { user } = useUser();
 
   return (
-    <header className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <header className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        
+        <div className="flex flex-row items-center gap-4">
+          {!list.is_public && (
+          <OrgImage
+            organization={organization}
+            isLoaded={isLoaded}
+            isOwner={isOwner}
+          />
+        )}
+        
         <h1 className="text-3xl font-bold">{list.title}</h1>
+        </div>
+        
 
         {/* Información del propietario de la lista */}
         {listOwner && (

@@ -18,6 +18,7 @@ export function useSwitchOrganization({
   setError: (error: string) => void;
 }) {
   useEffect(() => {
+
     let isCancelled = false;
 
     const switchAndLoad = async () => {
@@ -58,6 +59,7 @@ export function useSwitchOrganization({
 
     return () => {
       isCancelled = true;
+      setActive({ organization: '' });
     };
   }, [isLoaded, organizationId, currentOrgId]);
 }

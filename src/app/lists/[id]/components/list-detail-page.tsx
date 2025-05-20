@@ -8,7 +8,7 @@ import CommentSection from "./comment-section";
 import { LikesSection } from "./likes-section";
 import { ListHeader } from "./list-header";
 import { useSwitchOrganization } from "../hooks/use-switch-org";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 import Image from "next/image";
 
@@ -52,6 +52,13 @@ export function ListDetailPage({
   const { organization, isLoaded } = useOrganization();
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (setActive) {
+      setActive({ organization: undefined });
+    }
+    setError('');
+  }, [setActive]);
+
   useSwitchOrganization({
     isLoaded,
     organizationId: list.organization_id ?? undefined,
@@ -60,7 +67,6 @@ export function ListDetailPage({
     setError,
   });
 
-  console.log("organization", organization);
   
 
   return (
@@ -73,50 +79,10 @@ export function ListDetailPage({
           isOwner={isOwner}
           copied={copied}
           handleCopy={handleCopy}
+          isLoaded={isLoaded}
+          organization={organization}
         />
-
-        {!list.is_public && (
-        <div className="flex flex-col items-center space-y-2">
-          {!isLoaded ? (
-            <div className="w-16 h-16 rounded-full bg-gray-200 animate-pulse" />
-          ) : (
-            <>
-              {organization?.imageUrl && (
-          <Image
-            src={organization.imageUrl}
-            alt="Organization"
-            width={64}
-            height={64}
-            className="w-16 h-16 rounded-full mx-auto"
-          />
-              )}
-              {isOwner && organization?.setLogo && (
-          <form>
-            <input
-              type="file"
-              accept="image/*"
-              className="mt-2"
-              aria-label="Subir nuevo logo"
-              onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0];
-                if (file) {
-            try {
-              await organization.setLogo({ file });
-              window.location.reload(); // Opcional: recarga para ver el nuevo logo
-            } catch (err) {
-              setError("Error al subir el logo.");
-            }
-                }
-              }}
-            />
-          </form>
-              )}
-              {error && <span className="text-red-500 text-sm">{error}</span>}
-            </>
-          )}
-        </div>
-  )}
-
+        
         <Separator className="border-white/20" />
 
         {/* Libros de la lista */}
