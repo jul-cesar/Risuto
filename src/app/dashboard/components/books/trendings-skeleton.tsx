@@ -18,7 +18,7 @@ export function BookCardSkeleton() {
 
 export function BooksCarouselSkeleton() {
   // Create an array of 6 items to represent loading books
-  const skeletonItems = Array.from({ length: 6 }, (_, i) => i);
+  const skeletonItems = Array.from({ length: 20 }, (_, i) => i);
 
   return (
     <ScrollArea className="w-full pb-6">

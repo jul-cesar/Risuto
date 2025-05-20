@@ -1,11 +1,15 @@
 "use client";
-
+"use client";
 import { getBooksByGenreName, getTrendingBooks } from "@/actions/book-actions";
 import { getUserSharedOrganizations } from "@/actions/clerk-actions";
 import { getCurrentUserLists } from "@/actions/lists-actions";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { TrendingBooks } from "./components/books/trending-books";
 import { GenresBooks } from "./components/GenresBooks";
 import { CreateListDialog } from "./components/my-lists/dialog-new-list/create-list-dialog";
@@ -37,9 +41,7 @@ export default function DashboardPage() {
       const lists = Array.isArray(listsResponse)
         ? []
         : listsResponse?.data || [];
-
       const trendings = Array.isArray(books) ? [] : books?.data || [];
-
       const userOrgs = Array.isArray(userOrganizations)
         ? userOrganizations
         : [];
@@ -47,7 +49,6 @@ export default function DashboardPage() {
       const romance = Array.isArray(romanceBooks)
         ? []
         : romanceBooks?.data || [];
-
       const drama = Array.isArray(dramaBooks) ? [] : dramaBooks?.data || [];
 
       return {
@@ -59,54 +60,146 @@ export default function DashboardPage() {
         drama,
       };
     },
-    enabled: !!user, // Solo ejecuta la consulta si el usuario está definido // Solo ejecuta la consulta si el usuario está definido
+    enabled: !!user,
   });
 
   const books = data?.trendings || [];
   const lists = data?.lists || [];
   const userOrgs = data?.userOrgs || [];
-  const mangabo = data?.manga || [];
-  const romance = data?.romance || [];
+  const mangaBooks = data?.manga || [];
+  const romanceBooks = data?.romance || [];
+  const dramaBooks = data?.drama || [];
 
-  const drama = data?.drama || [];
+  const personalizedRecommendation = books.slice(0, 3);
 
   return (
-    <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
-      {/* contenedor centrado y con padding */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex min-h-screen bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
+      {/* Sidebar */}
+
+      {/* Main content */}
+      <main className="flex-1 overflow-auto">
         {/* Header */}
-        <header className="mb-12 text-center">
-          <h1 className="text-2xl">Welcome {user?.username}...</h1>
-        </header>
 
-        {/* Trending books */}
-        <TrendingBooks books={books} isLoading={isLoading} />
+        <ScrollArea className="h-[calc(100vh-4rem)]">
+          <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+            {/* Welcome Hero */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-900 to-blue-900 p-6 md:p-8"
+            >
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="flex-1 space-y-4">
+                  <h1 className="text-2xl md:text-3xl font-bold">
+                    Welcome back, {user?.username || "Reader"}!
+                  </h1>
+                  <p className="text-white/80 max-w-md">
+                    Continue your reading journey with personalized
+                    recommendations and track your progress.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button>Continue Reading</Button>
+                    <Button variant="outline" className="bg-white/10">
+                      Discover New Books
+                    </Button>
+                  </div>
+                </div>
 
-        <Separator className="border-white/20 mb-12" />
+                {personalizedRecommendation && (
+                  <div className="flex gap-4">
+                    {personalizedRecommendation.map((book) => (
+                      <Card
+                        key={book.id}
+                        className="w-48 } bg-black/40 backdrop-blur-lg border-white/10"
+                      >
+                        <CardHeader className="p-3">
+                          <CardTitle className="text-sm">
+                            Recommended for you
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                          <div className="mb-3">
+                            <div className="aspect-[2/3] rounded-md bg-black/20 mb-2 overflow-hidden">
+                              {book.cover_url && (
+                                <img
+                                  src={book.cover_url || "/placeholder.svg"}
+                                  alt={book.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <p className="text-xs font-medium truncate">
+                              {book.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {book.author}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        <GenresBooks books={mangabo} genreName="Manga" isLoading={isLoading} />
-        <GenresBooks
-          books={romance}
-          genreName="Romance"
-          isLoading={isLoading}
-        />
-        <Separator className="border-white/20 mb-12" />
+              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+              <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-xl"></div>
+            </motion.div>
 
-        <GenresBooks books={drama} genreName="Drama" isLoading={isLoading} />
-        <Separator className="border-white/20 mb-12" />
+            {/* Main Content Tabs */}
+            <Tabs defaultValue="trending" className="w-full">
+              <TabsList className="w-full md:w-auto grid grid-cols-4 md:inline-flex mb-6">
+                <TabsTrigger value="trending">Trending</TabsTrigger>
+                <TabsTrigger value="my-lists">My Lists</TabsTrigger>
+                <TabsTrigger value="shared">Shared</TabsTrigger>
+                <TabsTrigger value="explore">Explore</TabsTrigger>
+              </TabsList>
 
-        {/* My lists */}
-        <MyLists
-          lists={lists}
-          dialogTrigger={<CreateListDialog />}
-          isLoading={isLoading}
-        />
+              <TabsContent value="trending" className="space-y-6 mt-2">
+                <TrendingBooks books={books} isLoading={isLoading} />
+              </TabsContent>
 
-        <Separator className="border-white/20 mb-12" />
+              <TabsContent value="my-lists" className="space-y-6 mt-2">
+                <MyLists
+                  lists={lists}
+                  dialogTrigger={<CreateListDialog />}
+                  isLoading={isLoading}
+                />
+              </TabsContent>
 
-        {/* Shared lists */}
-        <SharedLists organizations={userOrgs} isLoading={isLoading} />
-      </div>
-    </main>
+              <TabsContent value="shared" className="space-y-6 mt-2">
+                <SharedLists organizations={userOrgs} isLoading={isLoading} />
+              </TabsContent>
+
+              <TabsContent value="explore" className="space-y-8 mt-2">
+                <div className="space-y-6">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <span className="inline-block w-1 h-6 bg-purple-500 rounded-full"></span>
+                    Explore by Genre
+                  </h2>
+
+                  <GenresBooks
+                    books={mangaBooks}
+                    genreName="Manga"
+                    isLoading={isLoading}
+                  />
+                  <GenresBooks
+                    books={romanceBooks}
+                    genreName="Romance"
+                    isLoading={isLoading}
+                  />
+                  <GenresBooks
+                    books={dramaBooks}
+                    genreName="Drama"
+                    isLoading={isLoading}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </ScrollArea>
+      </main>
+    </div>
   );
 }

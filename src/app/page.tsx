@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BookMarked,
   BookOpen,
   Search,
   Star,
@@ -200,19 +199,6 @@ export default async function LandingPage() {
               <p className="text-muted-foreground">
                 Califica tus lecturas y descubre las opiniones de otros usuarios
                 para encontrar tu próxima obsesión.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-xl p-6 transition-transform hover:scale-105 border border-border">
-              <div className="bg-primary/20 p-3 rounded-full w-fit mb-4">
-                <BookMarked className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">
-                Seguimiento de Series
-              </h3>
-              <p className="text-muted-foreground">
-                Recibe notificaciones cuando se publiquen nuevos volúmenes de
-                tus series favoritas.
               </p>
             </div>
           </div>
