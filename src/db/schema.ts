@@ -158,6 +158,7 @@ export const Likes = sqliteTable("likes", {
   id: text().primaryKey().$defaultFn(() => createId()),
   user_id: text().notNull(),
   list_id: text().notNull(),
+  reaction_id: text("reaction_id").notNull(),
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -172,6 +173,25 @@ export const likeRelations = relations(Likes, ({ one }) => ({
     fields: [Likes.list_id],
     references: [Lists.id],
   }),
+  reaction: one(Reactions, {
+    fields: [Likes.reaction_id],
+    references: [Reactions.id],
+  }),
+}));
+
+
+export const Reactions = sqliteTable("reactions", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  code: text("code").notNull(),        
+  label: text("label").notNull(),      
+  icon: text("icon").notNull(),        
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const reactionRelations = relations(Reactions, ({ many }) => ({
+  likes: many(Likes),
 }));
 
 export type User = typeof Users.$inferSelect;
@@ -202,4 +222,7 @@ export type NewBookComment = typeof BookComments.$inferInsert;
 
 export type Like = typeof Likes.$inferSelect;
 export type NewLike = typeof Likes.$inferInsert;
+
+export type Reaction = typeof Reactions.$inferSelect;
+export type NewReaction = typeof Reactions.$inferInsert;
 
