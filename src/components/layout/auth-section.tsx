@@ -5,7 +5,7 @@ export function AuthSection() {
   return (
     <div className="flex items-center gap-4">
       <ModeToggle />
-      <SignedOut>
+      <SignedOut >
         <SignInButton 
           mode="modal" 
           fallbackRedirectUrl={"/dashboard"}
@@ -13,7 +13,12 @@ export function AuthSection() {
           signUpFallbackRedirectUrl={"/dashboard"}
           signUpForceRedirectUrl={"/dashboard"}
         />
-        <SignUpButton mode="modal" />
+        <SignUpButton mode="modal" 
+          fallbackRedirectUrl={"/dashboard"}
+          forceRedirectUrl={"/dashboard"}
+          signInFallbackRedirectUrl={"/dashboard"}
+          signInForceRedirectUrl={"/dashboard"}
+          />
       </SignedOut>
       <SignedIn>
         <UserButton />

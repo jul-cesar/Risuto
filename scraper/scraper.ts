@@ -271,27 +271,7 @@ async function scrapeGoodreads(urls: string[]) {
 
 scrapeGoodreads([
 
-  "https://www.goodreads.com/shelf/show/shoujo",
-  "https://www.goodreads.com/shelf/show/seinen",
-  "https://www.goodreads.com/shelf/show/josei",
-  "https://www.goodreads.com/shelf/show/yuri",
-  "https://www.goodreads.com/shelf/show/slice-of-life",
-  "https://www.goodreads.com/shelf/show/supernatural",
-  "https://www.goodreads.com/shelf/show/fantasy-manga",
-  "https://www.goodreads.com/shelf/show/science-fiction-manga",
-  "https://www.goodreads.com/shelf/show/spanish-literature",
-  "https://www.goodreads.com/shelf/show/graphic-novels-manga",
-  "https://www.goodreads.com/shelf/show/historical-fiction",
-  "https://www.goodreads.com/shelf/show/romance-manga",
-  "https://www.goodreads.com/genres/latin-american-literature",
-  "https://www.goodreads.com/shelf/show/manga",
-  "https://www.goodreads.com/shelf/show/yaoi",
-  "https://www.goodreads.com/shelf/show/japanese",
-  "https://www.goodreads.com/shelf/show/pirates",
-  "https://www.goodreads.com/shelf/show/adventure",
-  "https://www.goodreads.com/shelf/show/read-manga",
-  "https://www.goodreads.com/shelf/show/contemporary",
-  "https://www.goodreads.com/shelf/show/poetry",
+  
   "https://www.goodreads.com/shelf/show/short-stories",
   "https://www.goodreads.com/shelf/show/essays",
   "https://www.goodreads.com/shelf/show/novels",

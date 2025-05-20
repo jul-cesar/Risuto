@@ -431,6 +431,7 @@ export const getGenres = async (): Promise<response<{ id: string; name: string }
 }
 
 
+
 export const getBooksPaginated = async (
   page: number = 1,
   limit: number = 20,
@@ -531,6 +532,96 @@ export const getBooksPaginated = async (
     };
   }
 }
+
+export const getBooksByGenreName = async (genreName: string): Promise<response<any[]>> => {
+  try {
+    if (!genreName) {
+      return {
+        success: false,
+        message: "Genre name is required",
+      };
+    }
+
+    // Primero encontramos el género por nombre
+    const genre = await db
+      .select({ id: Genres.id })
+      .from(Genres)
+      .where(sql`lower(${Genres.name}) = ${genreName.toLowerCase()}`)
+      .get();
+
+    if (!genre) {
+      return {
+        success: false,
+        message: `No genre found with name: ${genreName}`,
+        data: [],
+      };
+    }
+
+    // Luego obtenemos libros que tengan ese género, de forma aleatoria
+    const books = await db
+      .selectDistinct({
+        id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        is_trending: Books.is_trending,
+        pagesInfo: Books.pagesInfo,
+      })
+      .from(Books)
+      .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+      .where(eq(BookGenres.genre_id, genre.id))
+      .orderBy(sql`RANDOM()`) // Orden aleatorio
+      .limit(30);
+
+    // Obtenemos los géneros para cada libro
+    const bookIds = books.map(book => book.id);
+    
+    const allGenres = await db
+      .select({
+        book_id: BookGenres.book_id,
+        genre_id: Genres.id,
+        genre_name: Genres.name,
+      })
+      .from(BookGenres)
+      .innerJoin(Genres, eq(BookGenres.genre_id, Genres.id))
+      .where(inArray(BookGenres.book_id, bookIds));
+    
+    const genresByBookId: Record<string, Array<{id: string, name: string}>> = {};
+    
+    for (const genre of allGenres) {
+      if (!genresByBookId[genre.book_id]) {
+        genresByBookId[genre.book_id] = [];
+      }
+      genresByBookId[genre.book_id].push({
+        id: genre.genre_id,
+        name: genre.genre_name,
+      });
+    }
+    
+    const booksWithGenres = books.map(book => ({
+      ...book,
+      genres: genresByBookId[book.id] || [],
+    }));
+
+    return {
+      success: true,
+      message: booksWithGenres.length > 0 
+        ? `Books with genre '${genreName}' retrieved successfully` 
+        : `No books found with genre '${genreName}'`,
+      data: booksWithGenres,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving books by genre name:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving books by genre",
+    };
+  }
+};
 
 
 

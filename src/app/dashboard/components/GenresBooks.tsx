@@ -1,20 +1,21 @@
-import type { Book } from "@/db/schema";
-import { EmptyState } from "../empty-state";
-import { BooksCarousel } from "./book-carousel";
-import { BooksCarouselSkeleton } from "./trendings-skeleton";
+import { BooksCarousel } from "./books/book-carousel";
+import { BooksCarouselSkeleton } from "./books/trendings-skeleton";
+import { EmptyState } from "./empty-state";
 
-export function TrendingBooks({
+export function GenresBooks({
   books,
   isLoading,
+  genreName,
 }: {
-  books: Book[];
-  isLoading?: boolean;
+  books: any[];
+  isLoading: boolean;
+  genreName: string;
 }) {
   return (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center text-sm space-x-1">
-          <span>🔥 Trending books</span>
+          <span>{genreName} books</span>
         </div>
       </div>
 
