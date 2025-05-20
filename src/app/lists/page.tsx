@@ -6,6 +6,7 @@ import { getListsLikedByUser } from "@/actions/likes-actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { currentUser } from "@clerk/nextjs/server";
 import { EmptyState } from "../dashboard/components/empty-state";
+import { CreateListDialog } from "../dashboard/components/my-lists/dialog-new-list/create-list-dialog";
 
 type ListDataItem = NonNullable<
   Awaited<ReturnType<typeof getAllLists>>["data"]
@@ -72,6 +73,10 @@ export default async function ListsPage() {
         <header className="mb-12">
           <h1 className="text-2xl">🔥 Last added lists</h1>
         </header>
+
+        <div className = "w-full flex justify-end mb-12">
+          <CreateListDialog />
+        </div>
 
         <Tabs defaultValue="All public lists">
           <TabsList className="grid w-full grid-cols-3 mb-12">
