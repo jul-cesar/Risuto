@@ -18,8 +18,6 @@ export interface ListDetailPageProps {
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
   username: string;
-  onToggleLike: (newState: boolean) => Promise<void>;
-  initialLiked: boolean;
 }
 
 export function ListDetailPage({
@@ -32,8 +30,6 @@ export function ListDetailPage({
   copied,
   handleCopy,
   username,
-  onToggleLike,
-  initialLiked,
 }: ListDetailPageProps) {
   return (
     <main className="flex-1 bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -57,11 +53,8 @@ export function ListDetailPage({
         <LikesSection 
         likes={likes} 
         listId={list.id} 
-        onToggleLike={onToggleLike} 
-        initialLiked={initialLiked} 
         />
 
-        <Separator className="border-white/20" />
 
         {/* Sección de comentarios */}
         {list.comments_enabled && (
