@@ -4,7 +4,6 @@ import { EmptyState } from "../empty-state";
 import { ListsCarousel } from "./lists-carousel";
 import { SkeletonList } from "./skeleton-list";
 
-
 interface MyListsProps {
   lists: List[];
   dialogTrigger: React.ReactNode;
