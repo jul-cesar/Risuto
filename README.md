@@ -30,7 +30,8 @@ Esta app te permite:
 
 ## 🌐 Enlace a la demo
 
-[👉 Ver demo en vivo - Risuto](https://www.risuto.info/)  
+[👉 Ver demo en vivo - Risuto :point_left:](https://www.risuto.info/)  
+[👉Repositorio de código - Risuto :point_left:](https://github.com/jul-cesar/Risuto)
 
 ---
 
