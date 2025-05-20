@@ -402,3 +402,135 @@ export const editBookComment = async (
   }
 }
 
+export const getGenres = async (): Promise<response<{ id: string; name: string }[]>> => {
+  try {
+    const genres = await db
+      .select({
+        id: Genres.id,
+        name: Genres.name,
+        createdAt: Genres.createdAt,
+      })
+      .from(Genres)
+      .orderBy(desc(Genres.createdAt));
+
+    return {
+      success: true,
+      message: "Genres retrieved successfully",
+      data: genres,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving genres:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the genres",
+    };
+  }
+}
+
+
+export const getBooksPaginated = async (
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string
+) => {
+  try {
+    const offset = (page - 1) * limit;
+
+    // Primero, obtenemos el total de libros para saber si hay más resultados
+    const countQuery = db.select({ count: sql`count(*)` }).from(Books);
+    
+    if (searchTerm) {
+      countQuery.where(
+        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
+      );
+    }
+    
+    const [countResult] = await countQuery;
+    const totalBooks = Number(countResult?.count || 0);
+
+    // Luego, obtenemos los libros paginados usando selectDistinct para evitar duplicados
+    const query = db
+      .selectDistinct({
+        id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        is_trending: Books.is_trending,
+      
+        pagesInfo: Books.pagesInfo,
+        // Excluimos createdAt para reducir el tamaño de la respuesta
+      })
+      .from(Books)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(Books.createdAt));
+      
+    if (searchTerm) {
+      query.where(
+        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
+      );
+    }
+    
+    const books = await query;
+    
+    // Obtenemos todos los IDs de libros
+    const bookIds = books.map(book => book.id);
+    
+    // Obtenemos todos los géneros para estos libros en una sola consulta (más eficiente)
+    const allGenres = await db
+      .select({
+        book_id: BookGenres.book_id,
+        genre_id: Genres.id,
+        genre_name: Genres.name,
+      })
+      .from(BookGenres)
+      .innerJoin(Genres, eq(BookGenres.genre_id, Genres.id))
+      .where(inArray(BookGenres.book_id, bookIds));
+    
+    // Agrupamos los géneros por libro_id
+    const genresByBookId: Record<string, Array<{id: string, name: string}>> = {};
+    
+    for (const genre of allGenres) {
+      if (!genresByBookId[genre.book_id]) {
+        genresByBookId[genre.book_id] = [];
+      }
+      genresByBookId[genre.book_id].push({
+        id: genre.genre_id,
+        name: genre.genre_name,
+      });
+    }
+    
+    // Combinamos los libros con sus géneros
+    const booksWithGenres = books.map(book => ({
+      ...book,
+      genres: genresByBookId[book.id] || [],
+    }));
+
+    // Verificamos si hay más libros después de la página actual
+    const hasMore = totalBooks > offset + limit;
+
+    return {
+      success: true,
+      message: "Books retrieved successfully",
+      data: booksWithGenres,
+      hasMore,
+      total: totalBooks
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the books",
+    };
+  }
+}
+
+
+
