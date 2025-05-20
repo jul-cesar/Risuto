@@ -5,6 +5,7 @@ import { ListCard } from "./components/list-card";
 import { getListsLikedByUser } from "@/actions/likes-actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { currentUser } from "@clerk/nextjs/server";
+import { EmptyState } from "../dashboard/components/empty-state";
 
 type ListDataItem = NonNullable<
   Awaited<ReturnType<typeof getAllLists>>["data"]
@@ -81,23 +82,36 @@ export default async function ListsPage() {
           <TabsContent value="All public lists">
             {/* Lists */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {listsWithUser.map((list) => (
-                <ListCard key={list.id} list={list} />
-              ))}
+
+              {listsWithUser.length === 0 ? (
+                <EmptyState message="No public lists found :(" />
+              ) : (
+                listsWithUser.map((list) => (
+                  <ListCard key={list.id} list={list} />
+                ))
+              )}
             </div>
           </TabsContent>
           <TabsContent value="My lists">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userLists?.map((list) => (
+              {userLists?.length === 0 ? (
+                <EmptyState message="You don't have any lists :(" />
+              ) : (
+                userLists?.map((list) => (
                 <ListCard key={list.id} list={list} />
-              ))}
+              ))
+              )}
             </div>
           </TabsContent>
           <TabsContent value="Liked lists">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {listsLikedWithUser.map((list) => (
-                <ListCard key={list.id} list={list} />
-              ))}
+              {listsLikedWithUser.length === 0 ? (
+                <EmptyState message="You haven't liked any lists :(" />
+              ) : (
+                listsLikedWithUser.map((list) => (
+                  <ListCard key={list.id} list={list} />
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
