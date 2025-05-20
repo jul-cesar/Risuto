@@ -48,6 +48,7 @@ export default function useListLikes(listId: string, defaultReactionId: string) 
     data,
     isLoading,
     isError,
+    refetch
   } = useQuery<LikesResponse>({
     queryKey: ['listLikes', listId],
     queryFn: () => fetchLikes(listId),
@@ -125,7 +126,8 @@ export default function useListLikes(listId: string, defaultReactionId: string) 
     likes: data?.likes ?? [],
     userLike: data?.userLike ?? null,
     isLoading,
-    isError,
+    isError, 
+    refetch,
     like: (reactionId: string = defaultReactionId) => likeMutation.mutate(reactionId),
     unlike: () => unlikeMutation.mutate(),
   }

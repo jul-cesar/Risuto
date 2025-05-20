@@ -30,6 +30,7 @@ export function LikesSection({ listId }: LikesSectionProps) {
     isLoading,
     like,
     unlike,
+    refetch,
   } = useListLikes(listId, "thumbs-up")
 
   const isLiked = Boolean(userLike)
@@ -51,7 +52,7 @@ export function LikesSection({ listId }: LikesSectionProps) {
       >
         {isLiked ? 'Unlike' : 'Like'}
       </Button>
-      <Dialog>
+      <Dialog onOpenChange={(open) => open && refetch()}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="sm">
             {count} Like{count !== 1 ? 's' : ''}
