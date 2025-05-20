@@ -13,10 +13,13 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith('/lists/') && searchParams.has("shared")) {
+    return NextResponse.next();
+  }
+
   // 1) Listas públicas sin params → NEXT
   if (
     pathname.startsWith("/lists/") &&
-    !searchParams.has("shared") &&
     !searchParams.has("__clerk_status") &&
     !searchParams.has("__clerk_ticket")
   ) {
