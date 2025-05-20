@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { Book, BookComment, BookComments, BookGenres, Books, Genres, ListBooks } from "@/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { response } from "./lists-actions";
 
 export const getTrendingBooks = async (): Promise<response<Book[]>> => {
@@ -165,7 +165,8 @@ export const getBookGenres = async (bookId: string): Promise<response<{ genre: s
 export const createCommentBook = async (
   text: string,
   commenterName: string,
-  bookId: string
+  bookId: string,
+  userId: string
 ): Promise<response<void>> => {
   try {
     if (!text || !commenterName || !bookId) {
@@ -179,6 +180,7 @@ export const createCommentBook = async (
       text,
       commenter_name: commenterName,
       book_id: bookId,
+      user_id: userId,  
     });
 
     return {
@@ -228,3 +230,307 @@ export const getBookComments = async (bookId: string): Promise<response<BookComm
     };
   }
 };
+
+
+export async function getRelatedBooks(bookId: string) {
+  try {
+    if (!bookId) {
+      return {
+        success: false,
+        message: "Book ID is required",
+      };
+    }
+
+    // Primero, obtener los géneros del libro base
+    const bookGenres = await db
+      .select({ genre_id: BookGenres.genre_id })
+      .from(BookGenres)
+      .where(eq(BookGenres.book_id, bookId));
+
+    const genreIds = bookGenres.map(bg => bg.genre_id);
+
+    if (genreIds.length === 0) {
+      return {
+        success: false,
+        message: "No genres found for the given book",
+        data: [],
+      };
+    }
+
+    // Buscar libros que comparten géneros con el libro base
+   
+    const relatedBooksWithCount = await db
+      .select({
+        book_id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        createdAt: Books.createdAt,
+        is_trending: Books.is_trending,
+        publishedAt: Books.publishedAt,
+        pagesInfo: Books.pagesInfo,
+        genreCount: sql`COUNT(DISTINCT ${BookGenres.genre_id})`.as('genreCount')
+      })
+      .from(Books)
+      .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+      .where(
+        and(
+          ne(Books.id, bookId),
+          inArray(BookGenres.genre_id, genreIds)
+        )
+      )
+      .groupBy(Books.id)
+      .having(sql`COUNT(DISTINCT ${BookGenres.genre_id}) >= 3`) // Al menos 3 géneros coincidentes
+      .orderBy(sql`genreCount DESC`, desc(Books.createdAt)) // Primero por número de coincidencias, luego por fecha
+      .limit(30);
+
+    return {
+      success: true,
+      message: relatedBooksWithCount.length > 0 
+        ? "Related books retrieved successfully" 
+        : "No books with at least 3 matching genres found",
+      data: relatedBooksWithCount,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving related books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving related books",
+    };
+  }
+}
+
+
+export const deleteBookComment = async (commentId: string, userId:string): Promise<response<void>> => {
+  try {
+    if (!commentId || !userId) {
+      return {
+        success: false,
+        message: "Comment ID and User ID are required",
+      };
+    }
+
+    const comment = await db.query.BookComments.findFirst({
+      where: (BookComments, { eq }) => eq(BookComments.id, commentId),
+    });
+
+    if (!comment) {
+      return {
+        success: false,
+        message: "Comment not found",
+      };
+    }
+
+    if (comment.user_id !== userId) {
+      return {
+        success: false,
+        message: "You do not have permission to delete this comment",
+      };
+    }
+
+    await db.delete(BookComments).where(eq(BookComments.id, commentId));
+
+    return {
+      success: true,
+      message: "Comment deleted successfully",
+    };
+  } catch (error) {
+    console.error(
+      "Error deleting comment:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while deleting the comment",
+    };
+  }
+}
+
+export const editBookComment = async (
+  commentId: string,
+  userId: string,
+  newText: string
+): Promise<response<void>> => {
+  try {
+    if (!commentId || !userId || !newText) {
+      return {
+        success: false,
+        message: "Comment ID, User ID, and new text are required",
+      };
+    }
+
+    const comment = await db.query.BookComments.findFirst({
+      where: (BookComments, { eq }) => eq(BookComments.id, commentId),
+    });
+
+    if (!comment) {
+      return {
+        success: false,
+        message: "Comment not found",
+      };
+    }
+
+    if (comment.user_id !== userId) {
+      return {
+        success: false,
+        message: "You do not have permission to edit this comment",
+      };
+    }
+
+    await db
+      .update(BookComments)
+      .set({ text: newText })
+      .where(eq(BookComments.id, commentId));
+
+    return {
+      success: true,
+      message: "Comment edited successfully",
+    };
+  } catch (error) {
+    console.error(
+      "Error editing comment:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while editing the comment",
+    };
+  }
+}
+
+export const getGenres = async (): Promise<response<{ id: string; name: string }[]>> => {
+  try {
+    const genres = await db
+      .select({
+        id: Genres.id,
+        name: Genres.name,
+        createdAt: Genres.createdAt,
+      })
+      .from(Genres)
+      .orderBy(desc(Genres.createdAt));
+
+    return {
+      success: true,
+      message: "Genres retrieved successfully",
+      data: genres,
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving genres:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the genres",
+    };
+  }
+}
+
+
+export const getBooksPaginated = async (
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string
+) => {
+  try {
+    const offset = (page - 1) * limit;
+
+    // Primero, obtenemos el total de libros para saber si hay más resultados
+    const countQuery = db.select({ count: sql`count(*)` }).from(Books);
+    
+    if (searchTerm) {
+      countQuery.where(
+        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
+      );
+    }
+    
+    const [countResult] = await countQuery;
+    const totalBooks = Number(countResult?.count || 0);
+
+    // Luego, obtenemos los libros paginados usando selectDistinct para evitar duplicados
+    const query = db
+      .selectDistinct({
+        id: Books.id,
+        title: Books.title,
+        author: Books.author,
+        synopsis: Books.synopsis,
+        cover_url: Books.cover_url,
+        is_trending: Books.is_trending,
+      
+        pagesInfo: Books.pagesInfo,
+        // Excluimos createdAt para reducir el tamaño de la respuesta
+      })
+      .from(Books)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(Books.createdAt));
+      
+    if (searchTerm) {
+      query.where(
+        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
+      );
+    }
+    
+    const books = await query;
+    
+    // Obtenemos todos los IDs de libros
+    const bookIds = books.map(book => book.id);
+    
+    // Obtenemos todos los géneros para estos libros en una sola consulta (más eficiente)
+    const allGenres = await db
+      .select({
+        book_id: BookGenres.book_id,
+        genre_id: Genres.id,
+        genre_name: Genres.name,
+      })
+      .from(BookGenres)
+      .innerJoin(Genres, eq(BookGenres.genre_id, Genres.id))
+      .where(inArray(BookGenres.book_id, bookIds));
+    
+    // Agrupamos los géneros por libro_id
+    const genresByBookId: Record<string, Array<{id: string, name: string}>> = {};
+    
+    for (const genre of allGenres) {
+      if (!genresByBookId[genre.book_id]) {
+        genresByBookId[genre.book_id] = [];
+      }
+      genresByBookId[genre.book_id].push({
+        id: genre.genre_id,
+        name: genre.genre_name,
+      });
+    }
+    
+    // Combinamos los libros con sus géneros
+    const booksWithGenres = books.map(book => ({
+      ...book,
+      genres: genresByBookId[book.id] || [],
+    }));
+
+    // Verificamos si hay más libros después de la página actual
+    const hasMore = totalBooks > offset + limit;
+
+    return {
+      success: true,
+      message: "Books retrieved successfully",
+      data: booksWithGenres,
+      hasMore,
+      total: totalBooks
+    };
+  } catch (error) {
+    console.error(
+      "Error retrieving books:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message: "An unexpected error occurred while retrieving the books",
+    };
+  }
+}
+
+
+

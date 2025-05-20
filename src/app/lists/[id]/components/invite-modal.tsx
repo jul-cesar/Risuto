@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, Mail, X } from 'lucide-react';
 import { useOrganization, useOrganizationList } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
+import { useSwitchOrganization } from '../hooks/use-switch-org';
 
 type InviteModalProps = {
   list: {
@@ -34,111 +35,75 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
   // useOrganization nos da acceso a la organización actualmente activa
   const { organization, isLoaded } = useOrganization();
 
-  // Efecto para cambiar a la organización correcta al abrir el modal
-  useEffect(() => {
-    let isCancelled = false;
-    const requestId = Symbol('switchOrg');
-  
-    const switchAndLoad = async () => {
-      if (!isLoaded || !list.organization_id || !setActive) return;
-  
-      console.log('→ Switching to org:', list.organization_id);
-      try {
-        await setActive({ organization: list.organization_id });
-        console.log('✓ Switch complete:', list.organization_id);
-  
-        if (isCancelled) return;
-  
-        const checkOrg = () => {
-          return new Promise<void>((resolve) => {
-            const interval = setInterval(() => {
-              if (organization?.id === list.organization_id) {
-                clearInterval(interval);
-                resolve();
-              }
-            }, 100);
-          });
-        };
-  
-        await checkOrg();
-  
-        if (isCancelled) return;
-  
-        setMembers([]);
-        await loadMembers();
-      } catch (err) {
-        if (isCancelled) return;
-        console.error('✗ Error switching org:', err);
-        setError('Could not access the organization');
-      }
-    };
-  
-    switchAndLoad();
-  
-    return () => {
-      isCancelled = true;
-    };
-  }, [isLoaded, list.organization_id, setActive, organization?.id]);
-
-  // 3) Función para cargar miembros e invitaciones 
   const loadMembers = async () => {
-  if (!organization) return;
-  setIsLoading(true);
-  setError('');
+    if (!organization) return;
+    setIsLoading(true);
+    setError('');
+  
+    try {
+      // 1. Carga miembros activos
+      const { data: membershipData } = await organization.getMemberships();
+  
+      const activeEmailMap = new Map<string, true>();
+      const activeMembers = membershipData.map(m => {
+        const email = m.publicUserData?.identifier?.toLowerCase() ?? '';
+        activeEmailMap.set(email, true);
+        return {
+          id: m.id,
+          email,
+          role: m.role,
+          status: 'active' as const,
+        };
+      });
+  
+      // 2. Carga invitaciones (todas) y filtra las “pending”
+      const { data: inviteData } = await organization.getInvitations();
+  
+      // Filtrado por estatus ‘pending’
+      const pendingRaw = inviteData.filter(inv => inv.status === 'pending');
+  
+      // Filtra contra miembros activos
+      const pendingNotMember = pendingRaw.filter(inv => {
+        const email = inv.emailAddress.toLowerCase();
+        return !activeEmailMap.has(email);
+      });
+  
+      // Deduplica por email
+      const deduped: Record<string, typeof pendingNotMember[0]> = {};
+      pendingNotMember.forEach(inv => {
+        const key = inv.emailAddress.toLowerCase();
+        if (!deduped[key]) deduped[key] = inv;
+      });
+      const pendingInvites = Object.values(deduped);
+  
+      // Mapea al formato UI
+      const pendingMembers = pendingInvites.map(inv => ({
+        id: inv.id,
+        email: inv.emailAddress,
+        role: inv.role,
+        status: 'pending' as const,
+      }));
+  
+      // 3. Combina y actualiza estado
+      setMembers([...activeMembers, ...pendingMembers]);
+    } catch (err) {
+      console.error('Error loading members:', err);
+      setError('Could not load organization members');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  try {
-    // 1. Carga miembros activos
-    const { data: membershipData } = await organization.getMemberships();
-
-    const activeEmailMap = new Map<string, true>();
-    const activeMembers = membershipData.map(m => {
-      const email = m.publicUserData?.identifier?.toLowerCase() ?? '';
-      activeEmailMap.set(email, true);
-      return {
-        id: m.id,
-        email,
-        role: m.role,
-        status: 'active' as const,
-      };
-    });
-
-    // 2. Carga invitaciones (todas) y filtra las “pending”
-    const { data: inviteData } = await organization.getInvitations();
-
-    // Filtrado por estatus ‘pending’
-    const pendingRaw = inviteData.filter(inv => inv.status === 'pending');
-
-    // Filtra contra miembros activos
-    const pendingNotMember = pendingRaw.filter(inv => {
-      const email = inv.emailAddress.toLowerCase();
-      return !activeEmailMap.has(email);
-    });
-
-    // Deduplica por email
-    const deduped: Record<string, typeof pendingNotMember[0]> = {};
-    pendingNotMember.forEach(inv => {
-      const key = inv.emailAddress.toLowerCase();
-      if (!deduped[key]) deduped[key] = inv;
-    });
-    const pendingInvites = Object.values(deduped);
-
-    // Mapea al formato UI
-    const pendingMembers = pendingInvites.map(inv => ({
-      id: inv.id,
-      email: inv.emailAddress,
-      role: inv.role,
-      status: 'pending' as const,
-    }));
-
-    // 3. Combina y actualiza estado
-    setMembers([...activeMembers, ...pendingMembers]);
-  } catch (err) {
-    console.error('Error loading members:', err);
-    setError('Could not load organization members');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  // Efecto para cambiar a la organización correcta al abrir el modal
+  useSwitchOrganization({
+    isLoaded,
+    organizationId: list.organization_id,
+    currentOrgId: organization?.id,
+    setActive: setActive ?? (async () => {}),
+    loadMembers,
+    setMembers,
+    setError,
+  });
 
   // 4) Función para invitar
   const handleInvite = async (e: React.FormEvent) => {

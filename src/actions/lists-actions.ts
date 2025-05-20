@@ -1,10 +1,10 @@
 "use server";
 
+import { ListWithBooks } from "@/types/models/list-books";
 import { clerkClient } from "@clerk/nextjs/server";
 import { and, desc, eq, notInArray, or } from "drizzle-orm";
 import { db } from "../db";
-import { Books, List, ListBooks, Lists, NewList } from "../db/schema";
-import { ListWithBooks } from "@/types/models/list-books";
+import { Books, Comments, List, ListBooks, Lists, NewList } from "../db/schema";
 
 export interface response<T> {
   success: boolean;
@@ -61,6 +61,20 @@ export const createList = async (list: NewList): Promise<response<List>> => {
       message: 'List data is required and cannot be empty',
     };
   }
+  if(list.slug){ 
+const listExist = await db.query.Lists.findFirst({
+    where: (Lists, { eq }) => eq(Lists.slug , list.slug ?? ""),
+  });
+    
+  if (listExist) {
+    return {
+      success: false,
+      message: 'List with this slug already exists',
+    };
+  }
+  }
+  
+
 
   try {
     // 1. Iniciar cliente de Clerk
@@ -151,7 +165,8 @@ export const createList = async (list: NewList): Promise<response<List>> => {
 
 export const editList = async (
   listId: string,
-  updatedList: Partial<NewList>
+  updatedList: Partial<NewList>,
+  userId: string
 ): Promise<response<List>> => {
   try {
     if (!listId || !updatedList || Object.keys(updatedList).length === 0) {
@@ -160,6 +175,23 @@ export const editList = async (
         message: "List ID and updated data are required",
       };
     }
+    const list = await db
+      .select()
+      .from(Lists)
+      .where(eq(Lists.id, listId))
+      .get();
+      if(!list) {
+        return {
+          success: false,
+          message: "List not found",
+        };
+      } 
+      if(list.user_id !== userId) {
+        return {
+          success: false,
+          message: "You are not authorized to edit this list",
+        };
+      }
 
     const updated = await db
       .update(Lists)
@@ -565,3 +597,102 @@ export const getAllLists = async (): Promise<response<ListWithBooks[]>> => {
     };
   }
 };
+
+
+export const deleteListComment = async (
+  userId: string,
+ 
+  commentId: string
+): Promise<response<void>> => {
+  try {
+    if (!userId || !commentId) {
+      return {
+        success: false,
+        message: "User ID, List ID and Comment ID are required",
+      };
+    }
+
+    const deleted = await db
+      .delete(Comments)
+      .where(
+       
+         
+          eq(Comments.user_id, userId)
+        
+      )
+      .returning()
+      .get();
+
+    if (!deleted) {
+      return {
+        success: false,
+        message: "Failed to delete comment from list",
+      };
+    }
+    return {
+      success: true,
+      message: "Comment deleted from list successfully",
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error deleting comment from list:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message:
+        "An unexpected error occurred while deleting the comment from the list",
+    };
+  }
+}
+
+
+export const editListComment = async (
+  userId: string,
+  commentId: string,
+  text: string
+): Promise<response<void>> => {
+  try {
+    if (!userId ||  !commentId || !text) {
+      return {
+        success: false,
+        message: "User ID, List ID, Comment ID and text are required",
+      };
+    }
+
+    const updated = await db
+      .update(Comments)
+      .set({ text })
+      .where(
+        and(
+        
+          eq(Comments.user_id, userId),
+          eq(Comments.id, commentId)
+        )
+      )
+      .returning()
+      .get();
+
+    if (!updated) {
+      return {
+        success: false,
+        message: "Failed to edit comment from list",
+      };
+    }
+    return {
+      success: true,
+      message: "Comment edited from list successfully",
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Error editing comment from list:",
+      error instanceof Error ? error.message : error
+    );
+    return {
+      success: false,
+      message:
+        "An unexpected error occurred while editing the comment from the list",
+    };
+  }
+}
+    

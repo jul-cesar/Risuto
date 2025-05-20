@@ -1,22 +1,84 @@
-# Risuto - Plataforma para Gestionar Listas de Libros
+Risuto
 
-Risuto es una plataforma donde los usuarios pueden crear, organizar y compartir listas de libros. Puedes agregar libros a tus listas, dejarlas públicas o privadas, y permitir o deshabilitar comentarios en tus listas. 
-¡
+# 📚 Risuto
 
-# Todo
+**Risuto** es una app web para crear y compartir tus listas de lectura de novelas, historias, mangas y mucho más.
+¿Listas privadas? ¡Invita hasta a 5 amigos y compartan sus libros y opiniones! 
 
-- [x] Configure Database and Auth with Clerk
-- [x] Seed with fake data
-- [x] Create a first version of the UI
-- [ ] Display data
-- [x] Scrape or fetch book data
-- [ ] Create functionality to create lists
-- [x] Allow users to share lists
-- [ ] Allow users to add books to lists
-- [ ] Implement UploadThing to allow users to add a photo to lists
-- [x] Create a design for the UI
-- [ ] Potentially integrate AI using the Vercel SDK (if time allows)
-- [x] Deploy the app
 
-# FIGMA
- -> https://www.figma.com/design/Tz8xQ76SxvL1FfgLpIIEnC/Untitled?node-id=0-1&p=f&t=CY8dN2ibloKSuAIu-0
+
+---
+
+## 🔍 Descripción del proyecto
+
+Esta app te permite:
+
+- **Explorar** más de 15 000 libros (novelas, manga, etc.) 🤯.
+- **Crear** hasta 100 listas de lectura por usuario 📋.
+  - Listas **públicas** (cualquiera puede verlas, comentar y dar “like”) 📢.
+  - Listas **privadas** 🔐. 
+    - Se crea automáticamente una **organización** en Clerk por cada lista privada. 🦸🏿‍♂️
+    - Invitar hasta 5 miembros mediante enlaces enviados por correo. 👯‍♂️
+    - Rol de **admin** : Agregar, leer, editar y eliminar libros  completo + gestión de miembros. 👨🏿‍💻
+    - Rol de **member**: solo podrá añadir y ver libros en la lista.🧑🏿‍🦽
+- **Comentar** en cada lista y en cada libro de la lista, no hace falta que tengas una sesión para comentar.🎬
+- **Dar “like”** podrás dar like a las listas que más te gustan y ver quien ha dado like a las listas 👀 
+- Ver listas que te han **compartido** o a las que has dado **“like”**. 👋
+- Cuando visites un libro, podrás ver **libros relacionados** con tu vista actual 🤓. 
+
+---
+
+## 🌐 Enlace a la demo
+
+[👉 Ver demo en vivo - Risuto](https://risuto-iota.vercel.app/)  
+
+---
+
+## 📸 Capturas de pantalla / GIFs
+
+![Pantalla de inicio](/screenshots/dashboard.jpg)
+![Pantalla de inicio](/screenshots/dashboard2.jpg)
+*Pantalla principal con listado de libros*
+
+
+![Crear lista](./screenshots/priv-create.gif)  
+*GIF: creación de una lista privada y añadir miembros*
+
+
+![Detalle de lista](/screenshots/detail-list.gif)  
+*Vista de detalle con comentarios y likes*
+
+
+---
+
+## 🔐 Integración con Clerk
+
+Clerk se utiliza para manejar **usuarios**, **registro**, **login**, **protección de rutas** y **roles/organizaciones**:
+
+1. **Registro & Login**  
+   - Componentes de Clerk para UI de autenticación.
+   - Redirección automática tras login/logout.
+   - **Middleware** de Next.js que protege las rutas privadas y lee la sesión de Clerk.
+
+2. **Webhooks**  
+   - URL de webhook en `src/app/api/webhooks/`.
+   - Capturamos el evento `user.created` que emite **Clerk** para guardar al usuario en nuestra base de datos (Prisma).
+
+3. **Organizaciones dinámicas**  
+   - Al crear una “lista privada”:
+     - Creamos una organización en Clerk (`clerk.organizations.createOrganization({...})`).
+     - Asociamos `org.id` a la lista en nuestra BD.
+   - **Invitaciones**:
+     - Envío de invitaciones a través del correo electrónico usando el **SDK de Clerk**
+     - Al aceptar la invitación a una lista privada, el **middleware** y ruta `src/app/accept-invitation/[[..rest]]` redirige al usuario a `/lists/[slug]` y se valida su membresía para agregarlo a la **organización** como un miembro más.
+    - **Ingreso a lista privada** 
+      - Mediante el uso del **SDK de Clerk** y el **middleware** se validará si un usuario tiene una **invitación** o pertenece a la **organización** para poder ver la lista privada. 
+    - **Vista de organizaciones** 
+      - Cada usuario podrá ver un listado de las **organizaciones** (listas) a las que haya sido invitado y sea miembro activo. 
+
+4. **Roles y permisos en la organización**  
+   - **Admin**: pueden editar/añadir/eliminar lista, invitar más miembros.
+   - **Member**: solo pueden **añadir libros** y **comentar**.
+   - Validación por middleware en cada endpoint (Next API Routes) y en el frontend (UI adaptativa).
+
+---  

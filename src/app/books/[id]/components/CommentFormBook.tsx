@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState } from "react";
 
 import { createCommentBook } from "@/actions/book-actions";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 
@@ -16,7 +17,7 @@ function FormButton() {
     <Button type="submit" disabled={pending} className="relative">
       {pending ? (
         <>
-          <span className="opacity-0">Publicar</span>
+          <span className="opacity-0">Publish</span>
           <span className="absolute inset-0 flex items-center justify-center">
             <svg
               className="animate-spin h-5 w-5 text-white"
@@ -41,7 +42,7 @@ function FormButton() {
           </span>
         </>
       ) : (
-        "Publicar"
+        "Publish"
       )}
     </Button>
   );
@@ -59,13 +60,14 @@ export function CommentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { user } = useUser();
   async function handleFormAction(formData: FormData) {
     const text = formData.get("text") as string;
     if (!text.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await createCommentBook(text, username, bookId);
+      await createCommentBook(text, username, bookId, user?.id ?? "");
       setNewComment("");
       formRef.current?.reset();
       router.refresh();
@@ -112,14 +114,14 @@ export function CommentForm({
         htmlFor="new-comment"
         className="text-sm font-medium text-foreground"
       >
-        Añadir comentario
+        Add a comment
       </Label>
       <Textarea
         id="new-comment"
         name="text"
         value={newComment}
         onChange={(e) => setNewComment(e.target.value)}
-        placeholder="Escribe tu comentario..."
+        placeholder="Write a comment..."
         rows={3}
         className="resize-none"
         disabled={isSubmitting}

@@ -17,6 +17,9 @@ export const Users = sqliteTable("users", {
 
 export const userRelations = relations(Users, ({ many }) => ({
   lists: many(Lists),
+  likes: many(Likes),
+  comments: many(Comments), // Agregamos la relación con Comments
+  bookComments: many(BookComments), // Agregamos la relación con BookComments
 }));
 
 export const Books = sqliteTable("books", {
@@ -53,11 +56,12 @@ export const Lists = sqliteTable("lists", {
   
 });
 
-export const listRelations = relations(Lists, ({ one }) => ({
+export const listRelations = relations(Lists, ({ one, many }) => ({
   user: one(Users, {
     fields: [Lists.user_id],
     references: [Users.id],
   }),
+  likes: many(Likes),  
 }));
 
 export const ListBooks = sqliteTable("list_books", {
@@ -82,6 +86,7 @@ export const listBooksRelations = relations(ListBooks, ({ one }) => ({
 export const Comments = sqliteTable("comments", {
   id: text().primaryKey().$defaultFn(() => createId()),
   list_id: text().notNull(),
+  user_id: text().notNull(), // Agregamos user_id para relacionar con el usuario
   commenter_name: text().notNull(),
   text: text().notNull(),
   createdAt: text("created_at")
@@ -96,6 +101,10 @@ export const commentRelations = relations(Comments, ({ one }) => ({
   list: one(Lists, {
     fields: [Comments.list_id],
     references: [Lists.id],
+  }),
+  user: one(Users, { // Agregamos la relación con el usuario
+    fields: [Comments.user_id],
+    references: [Users.id],
   }),
 }));
 
@@ -134,6 +143,7 @@ export const bookGenresRelations = relations(BookGenres, ({ one }) => ({
 export const BookComments = sqliteTable("book_comments", {
   id: text().primaryKey().$defaultFn(() => createId()),
   book_id: text().notNull(),
+  user_id: text().notNull(), // Agregamos user_id para relacionar con el usuario
   commenter_name: text().notNull(),
   text: text().notNull(),
   createdAt: text("created_at")
@@ -150,6 +160,50 @@ export const bookCommentRelations = relations(BookComments, ({ one }) => ({
     fields: [BookComments.book_id],
     references: [Books.id],
   }),
+  user: one(Users, { // Agregamos la relación con el usuario
+    fields: [BookComments.user_id],
+    references: [Users.id],
+  }),
+}));
+
+export const Likes = sqliteTable("likes", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  user_id: text().notNull(),
+  list_id: text().notNull(),
+  reaction_id: text("reaction_id").notNull(),
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const likeRelations = relations(Likes, ({ one }) => ({
+  user: one(Users, {
+    fields: [Likes.user_id],
+    references: [Users.id],
+  }),
+  list: one(Lists, {
+    fields: [Likes.list_id],
+    references: [Lists.id],
+  }),
+  reaction: one(Reactions, {
+    fields: [Likes.reaction_id],
+    references: [Reactions.id],
+  }),
+}));
+
+
+export const Reactions = sqliteTable("reactions", {
+  id: text().primaryKey().$defaultFn(() => createId()),
+  code: text("code").notNull(),        
+  label: text("label").notNull(),      
+  icon: text("icon").notNull(),        
+  createdAt: text("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const reactionRelations = relations(Reactions, ({ many }) => ({
+  likes: many(Likes),
 }));
 
 export type User = typeof Users.$inferSelect;
@@ -177,3 +231,10 @@ export type NewBookGenre = typeof BookGenres.$inferInsert;
 
 export type BookComment = typeof BookComments.$inferSelect;
 export type NewBookComment = typeof BookComments.$inferInsert;
+
+export type Like = typeof Likes.$inferSelect;
+export type NewLike = typeof Likes.$inferInsert;
+
+export type Reaction = typeof Reactions.$inferSelect;
+export type NewReaction = typeof Reactions.$inferInsert;
+

@@ -4,6 +4,7 @@ import { formatCustomDate } from "@/lib/utils";
 import { SignInButton } from "@clerk/nextjs";
 import { MessageSquare } from "lucide-react";
 import { CommentForm } from "./comment-form";
+import { CommentItemList } from "./CommentItemList";
 
 export default function CommentSection({
   comments,
@@ -44,12 +45,12 @@ export default function CommentSection({
       {/* Listado de comentarios */}
       {comments.length === 0 ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
-          No hay comentarios aún
+          No comments yet. Be the first to comment!
         </div>
       ) : (
         <div className="space-y-4">
           {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} />
+            <CommentItemList key={c.id} comment={c}  />
           ))}
         </div>
       )}
@@ -57,13 +58,3 @@ export default function CommentSection({
   );
 }
 
-export function CommentItem({ comment }: { comment: Comment }) {
-  return (
-    <div className="bg-card rounded-md p-4 space-y-1 text-card-foreground">
-      <p className="text-xs text-muted-foreground">
-        {comment.commenter_name} &bull; {formatCustomDate(comment.createdAt)}
-      </p>
-      <p className="text-sm">{comment.text}</p>
-    </div>
-  );
-}
