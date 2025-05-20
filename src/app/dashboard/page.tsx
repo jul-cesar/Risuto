@@ -8,8 +8,6 @@ import {
 import { getUserSharedOrganizations } from "@/actions/clerk-actions";
 import { getCurrentUserLists } from "@/actions/lists-actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
@@ -67,7 +65,7 @@ export default function DashboardPage() {
       const genreBooksData = genreBooks.map((response, index) => {
         const genre = selectedGenres[index];
         console.log(`Mapping genre - name: ${genre.name}, id: ${genre.id}`); // Log para depuración
-        
+
         return {
           genreName: genre.name,
           books: Array.isArray(response) ? [] : response?.data || [],
@@ -110,138 +108,129 @@ export default function DashboardPage() {
   const personalizedRecommendation = res?.slice(0, 3) ?? [];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
-      {/* Sidebar */}
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 md:max-w-7xl mx-auto w-full px-4 py-6 space-y-8">
+        {/* Welcome Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8"
+        >
+          <div className="flex flex-col md:flex-row gap-6 items-center w-full">
+            <div className="flex-1 space-y-4">
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Welcome back, {user?.username || "Reader"}!
+              </h1>
+              <p className="text-white/80 max-w-md">
+                Continue your reading journey with personalized recommendations
+                and track your progress.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="bg-white/10">
+                  Discover New Books
+                </Button>
+              </div>
+            </div>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        {/* Header */}
+            {/* {personalizedRecommendation && (
+              <div className="flex flex-wrap gap-4 justify-center md:justify-start w-full md:w-auto">
+                {personalizedRecommendation.map((book) => (
+                  <Card
+                    onClick={() => {
+                      window.open(`/books/${book.book_id}`, "_blank");
+                    }}
+                    key={book.book_id}
+                    className="w-36 sm:w-40 md:w-48 bg-black/40 backdrop-blur-lg border-white/10 flex-shrink-0"
+                  >
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-xs sm:text-sm">
+                        Recommended for you
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <div className="mb-3">
+                        <div className="aspect-[2/3] rounded-md bg-black/20 mb-2 overflow-hidden">
+                          {book.cover_url && (
+                            <img
+                              src={book.cover_url || "/placeholder.svg"}
+                              alt={book.title}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <p className="text-xs font-medium truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {book.author}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )} */}
+          </div>
 
-        <ScrollArea className="h-[calc(100vh-4rem)]">
-          <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-            {/* Welcome Hero */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-background to-background  p-6 md:p-8"
-            >
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                <div className="flex-1 space-y-4">
-                  <h1 className="text-2xl md:text-3xl font-bold">
-                    Welcome back, {user?.username || "Reader"}!
-                  </h1>
-                  <p className="text-white/80 max-w-md">
-                    Continue your reading journey with personalized
-                    recommendations and track your progress.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button variant="outline" className="bg-white/10">
-                      Discover New Books
-                    </Button>
+          <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-xl"></div>
+        </motion.div>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="trending" className="w-full">
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="w-full md:w-auto grid grid-cols-4 md:inline-flex mb-6">
+              <TabsTrigger value="trending">Trending</TabsTrigger>
+              <TabsTrigger value="my-lists">My Lists</TabsTrigger>
+              <TabsTrigger value="shared">Shared</TabsTrigger>
+              <TabsTrigger value="explore">Explore</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="min-h-[400px]">
+            {" "}
+            {/* Contenedor con altura mínima para todas las pestañas */}
+            <TabsContent value="trending" className="space-y-6 mt-2">
+              <TrendingBooks books={books} isLoading={isLoading} />
+            </TabsContent>
+            <TabsContent value="my-lists" className="space-y-6 mt-2">
+              <MyLists
+                lists={lists}
+                dialogTrigger={<CreateListDialog />}
+                isLoading={isLoading}
+              />
+            </TabsContent>
+            <TabsContent value="shared" className="space-y-6 mt-2">
+              <SharedLists organizations={userOrgs} isLoading={isLoading} />
+            </TabsContent>
+            <TabsContent value="explore" className="space-y-8 mt-2">
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <span className="inline-block w-1 h-6 bg-purple-500 rounded-full"></span>
+                  Explore by Genre
+                </h2>
+
+                {isLoading ? (
+                  <div className="flex justify-center py-10">
+                    <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
                   </div>
-                </div>
-
-                {personalizedRecommendation && (
-                  <div className="flex gap-4">
-                    {personalizedRecommendation.map((book) => (
-                      <Card
-                        onClick={() => {
-                          window.open(`/books/${book.book_id}`, "_blank"); // Abre en una nueva
-                        }}
-                        key={book.book_id}
-                        className="w-48 } bg-black/40 backdrop-blur-lg border-white/10"
-                      >
-                        <CardHeader className="p-3">
-                          <CardTitle className="text-sm">
-                            Recommended for you
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-3 pt-0">
-                          <div className="mb-3">
-                            <div className="aspect-[2/3] rounded-md bg-black/20 mb-2 overflow-hidden">
-                              {book.cover_url && (
-                                <img
-                                  src={book.cover_url || "/placeholder.svg"}
-                                  alt={book.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-                            <p className="text-xs font-medium truncate">
-                              {book.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {book.author}
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                ) : (
+                  genreBooksData.map((genreData, index) => (
+                    <GenresBooks
+                      key={genreData.genreId || index}
+                      genreId={genreData.genreId}
+                      books={genreData.books}
+                      genreName={genreData.genreName}
+                      isLoading={isLoading}
+                    />
+                  ))
                 )}
               </div>
-
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-xl"></div>
-            </motion.div>
-
-            {/* Main Content Tabs */}
-            <Tabs defaultValue="trending" className="w-full">
-              <TabsList className="w-full md:w-auto grid grid-cols-4 md:inline-flex mb-6">
-                <TabsTrigger value="trending">Trending</TabsTrigger>
-                <TabsTrigger value="my-lists">My Lists</TabsTrigger>
-                <TabsTrigger value="shared">Shared</TabsTrigger>
-                <TabsTrigger value="explore">Explore</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="trending" className="space-y-6 mt-2">
-                <TrendingBooks books={books} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="my-lists" className="space-y-6 mt-2">
-                <MyLists
-                  lists={lists}
-                  dialogTrigger={<CreateListDialog />}
-                  isLoading={isLoading}
-                />
-              </TabsContent>
-
-              <TabsContent value="shared" className="space-y-6 mt-2">
-                <SharedLists organizations={userOrgs} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="explore" className="space-y-8 mt-2">
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <span className="inline-block w-1 h-6 bg-purple-500 rounded-full"></span>
-                    Explore by Genre
-                  </h2>
-
-                  {isLoading ? (
-                    <div className="flex justify-center py-10">
-                      <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
-                    </div>
-                  ) : (
-                    genreBooksData.map((genreData, index) => {
-                      console.log(`Rendering genre ${index} - ${genreData.genreName}, id: ${genreData.genreId}`); // Log para depuración
-                      return (
-                        <GenresBooks
-                          key={genreData.genreId || index}
-                          genreId={genreData.genreId}
-                          books={genreData.books}
-                          genreName={genreData.genreName}
-                          isLoading={isLoading}
-                        />
-                      );
-                    })
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+            </TabsContent>
           </div>
-        </ScrollArea>
-      </main>
+        </Tabs>
+      </div>
     </div>
   );
 }
