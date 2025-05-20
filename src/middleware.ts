@@ -52,5 +52,7 @@ export const config = {
     '/((?!_next/|favicon.ico|favicon.png|.*\\.(?:jpg|jpeg|png|gif|webp|svg|ico|css|js)).*)',
     // Always run for API routes
     '/(api|trpc)(.*)',
+    '/api/webhooks(.*)',
+
   ],
 }
