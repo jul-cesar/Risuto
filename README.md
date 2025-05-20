@@ -41,21 +41,12 @@ Esta app te permite:
 *Pantalla principal con listado de libros*
 
 
-![Crear lista](./screenshots/create-list.jpg)  
+![Crear lista](./screenshots/priv-create.gif)  
 *GIF: creación de una lista privada y añadir miembros*
 
 
-![Detalle de lista](/screenshots/list-detail.jpg) 
-![Detalle de lista](/screenshots/list-detail2.jpg)  
+![Detalle de lista](/screenshots/detail-list.gif)  
 *Vista de detalle con comentarios y likes*
-
-
-![Detalle de vista privada](/screenshots/private-list.jpg)
-*Vista de una lista privada y sus permisos* 
-
-
-![Listado de miembros en una lista privada](/screenshots/members-private.jpg)
-*Listado de miembros e input para enviar invitaciones por correo*
 
 
 ---
