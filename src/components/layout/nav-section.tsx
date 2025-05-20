@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { SignedIn } from "@clerk/nextjs";
+import Link from "next/link";
 import { ReactNode } from "react";
 
 export function NavSection() {
@@ -11,7 +11,6 @@ export function NavSection() {
   );
 }
 
-
 export function Logo() {
   return (
     <Link href="/dashboard">
@@ -22,16 +21,12 @@ export function Logo() {
   );
 }
 
-
 function AuthNavLinks() {
   return (
     <SignedIn>
       <nav className="flex items-center gap-4 text-foreground">
-        <NavLink>Books</NavLink>
-        <Link 
-          href={"/lists"}
-
-        >Lists</Link>
+        <NavLink href="/books">Books</NavLink>
+        <Link href={"/lists"}>Lists</Link>
       </nav>
     </SignedIn>
   );
