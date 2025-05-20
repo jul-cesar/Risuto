@@ -36,16 +36,20 @@ Esta app te permite:
 
 ## 📸 Capturas de pantalla / GIFs
 
-![Pantalla de inicio](/screenshots/home.png)
-![Pantalla de inicio](/screenshots/dashboard2.jpg)
+![Pantalla de inicio](/screenshots/new-dashboard.gif)
 *Pantalla principal con listado de libros*
+
+---
 
 ![Crear lista](./screenshots/priv-create.gif)  
 *GIF: creación de una lista privada y añadir mivembros*
 
+---
 
 ![Detalle de lista](/screenshots/detail-list.gif)  
 *Vista de detalle con comentarios y likes*
+
+---
 
 ![Agregra libros a una lista](./screenshots/add-book.gif)
 *Agregar libros a una lista*
