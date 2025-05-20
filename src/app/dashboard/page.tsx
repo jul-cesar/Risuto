@@ -1,6 +1,10 @@
 "use client";
-"use client";
-import { getBooksByGenreName, getTrendingBooks } from "@/actions/book-actions";
+import {
+  getBooksByGenreName,
+  getGenres,
+  getRelatedBooks,
+  getTrendingBooks,
+} from "@/actions/book-actions";
 import { getUserSharedOrganizations } from "@/actions/clerk-actions";
 import { getCurrentUserLists } from "@/actions/lists-actions";
 import { Button } from "@/components/ui/button";
@@ -19,24 +23,37 @@ import { SharedLists } from "./components/shared-lists/shared-lists";
 export default function DashboardPage() {
   const { user } = useUser();
 
+  // Obtener los géneros y luego los libros correspondientes
   const { data, isLoading } = useQuery({
     queryKey: ["dashboardData"],
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+
     queryFn: async () => {
-      const [
-        books,
-        listsResponse,
-        userOrganizations,
-        mangaBooks,
-        romanceBooks,
-        dramaBooks,
-      ] = await Promise.all([
+      // Primero obtenemos todos los géneros disponibles
+      const genresResponse = await getGenres();
+
+      // Verificamos si la respuesta es exitosa y contiene géneros
+      const allGenres =
+        genresResponse.success && genresResponse.data
+          ? genresResponse.data
+          : [];
+
+      // Seleccionamos 3 géneros aleatorios si hay suficientes
+      const selectedGenres = selectRandomGenres(allGenres, 3);
+
+      // Obtenemos los datos básicos
+      const [books, listsResponse, userOrganizations] = await Promise.all([
         getTrendingBooks(),
         user?.id ? getCurrentUserLists(user.id) : [],
         user?.id ? getUserSharedOrganizations(user.id) : [],
-        getBooksByGenreName("manga"),
-        getBooksByGenreName("romance"),
-        getBooksByGenreName("drama"),
       ]);
+
+      // Obtenemos los libros para los géneros seleccionados
+      const genreBooks = await Promise.all(
+        selectedGenres.map((genre) => getBooksByGenreName(genre.name))
+      );
 
       const lists = Array.isArray(listsResponse)
         ? []
@@ -45,19 +62,25 @@ export default function DashboardPage() {
       const userOrgs = Array.isArray(userOrganizations)
         ? userOrganizations
         : [];
-      const manga = Array.isArray(mangaBooks) ? [] : mangaBooks?.data || [];
-      const romance = Array.isArray(romanceBooks)
-        ? []
-        : romanceBooks?.data || [];
-      const drama = Array.isArray(dramaBooks) ? [] : dramaBooks?.data || [];
+
+      // Procesamos los resultados de los libros por género
+      const genreBooksData = genreBooks.map((response, index) => {
+        const genre = selectedGenres[index];
+        console.log(`Mapping genre - name: ${genre.name}, id: ${genre.id}`); // Log para depuración
+        
+        return {
+          genreName: genre.name,
+          books: Array.isArray(response) ? [] : response?.data || [],
+          genreId: genre.id, // Asegurarnos de que el ID se pasa correctamente
+        };
+      });
 
       return {
         trendings,
         lists,
         userOrgs,
-        manga,
-        romance,
-        drama,
+        genreBooksData,
+        selectedGenres,
       };
     },
     enabled: !!user,
@@ -66,11 +89,25 @@ export default function DashboardPage() {
   const books = data?.trendings || [];
   const lists = data?.lists || [];
   const userOrgs = data?.userOrgs || [];
-  const mangaBooks = data?.manga || [];
-  const romanceBooks = data?.romance || [];
-  const dramaBooks = data?.drama || [];
+  const genreBooksData = data?.genreBooksData || [];
 
-  const personalizedRecommendation = books.slice(0, 3);
+  const { data: res } = useQuery({
+    queryKey: ["recommended"],
+    queryFn: async () => {
+      // Verificar si tenemos un libro para obtener recomendaciones
+      if (!books.length || !books[7]?.id) {
+        return []; // Devolver array vacío si no hay libros disponibles
+      }
+
+      const r = await getRelatedBooks(books[7]?.id);
+      // Siempre devolver un array (vacío si no hay datos exitosos)
+      return r.success ? r.data : [];
+    },
+    // Solo habilitar la consulta si hay libros disponibles
+    enabled: !!books.length,
+  });
+
+  const personalizedRecommendation = res?.slice(0, 3) ?? [];
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-background-secondary to-background text-foreground font-mono">
@@ -87,7 +124,7 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-900 to-blue-900 p-6 md:p-8"
+              className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-background to-background  p-6 md:p-8"
             >
               <div className="flex flex-col md:flex-row gap-6 items-center">
                 <div className="flex-1 space-y-4">
@@ -99,7 +136,6 @@ export default function DashboardPage() {
                     recommendations and track your progress.
                   </p>
                   <div className="flex gap-3">
-                    <Button>Continue Reading</Button>
                     <Button variant="outline" className="bg-white/10">
                       Discover New Books
                     </Button>
@@ -110,7 +146,10 @@ export default function DashboardPage() {
                   <div className="flex gap-4">
                     {personalizedRecommendation.map((book) => (
                       <Card
-                        key={book.id}
+                        onClick={() => {
+                          window.open(`/books/${book.book_id}`, "_blank"); // Abre en una nueva
+                        }}
+                        key={book.book_id}
                         className="w-48 } bg-black/40 backdrop-blur-lg border-white/10"
                       >
                         <CardHeader className="p-3">
@@ -179,21 +218,24 @@ export default function DashboardPage() {
                     Explore by Genre
                   </h2>
 
-                  <GenresBooks
-                    books={mangaBooks}
-                    genreName="Manga"
-                    isLoading={isLoading}
-                  />
-                  <GenresBooks
-                    books={romanceBooks}
-                    genreName="Romance"
-                    isLoading={isLoading}
-                  />
-                  <GenresBooks
-                    books={dramaBooks}
-                    genreName="Drama"
-                    isLoading={isLoading}
-                  />
+                  {isLoading ? (
+                    <div className="flex justify-center py-10">
+                      <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                  ) : (
+                    genreBooksData.map((genreData, index) => {
+                      console.log(`Rendering genre ${index} - ${genreData.genreName}, id: ${genreData.genreId}`); // Log para depuración
+                      return (
+                        <GenresBooks
+                          key={genreData.genreId || index}
+                          genreId={genreData.genreId}
+                          books={genreData.books}
+                          genreName={genreData.genreName}
+                          isLoading={isLoading}
+                        />
+                      );
+                    })
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -202,4 +244,12 @@ export default function DashboardPage() {
       </main>
     </div>
   );
+}
+// Función para seleccionar géneros aleatorios de una lista
+function selectRandomGenres(
+  genres: { id: string; name: string }[],
+  count: number
+) {
+  const shuffled = [...genres].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
