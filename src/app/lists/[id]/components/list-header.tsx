@@ -17,6 +17,7 @@ import { useState } from "react";
 import { DeleteListDialog } from "./DeleteListDialog";
 import { EditListDialog } from "./EditListModa";
 import { InviteModal } from "./invite-modal";
+import Image from "next/image";
 
 interface ListHeaderProps {
   list: List;
@@ -53,16 +54,18 @@ export function ListHeader({
 
         {/* Información del propietario de la lista */}
         {listOwner && (
-          <div className="flex items-center gap-2">
-            <img
-              src={listOwner.avatar_url ?? ""}
+            <div className="flex items-center gap-2">
+            <Image
+              src={listOwner.avatar_url ?? "/default-avatar.png"}
               alt={listOwner.name}
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full"
             />
             <span className="text-sm text-gray-500">
               {listOwner.name} (Owner)
             </span>
-          </div>
+            </div>
         )}
 
         {/* Barra de herramientas con botones de acción */}
