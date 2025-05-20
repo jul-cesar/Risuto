@@ -11,10 +11,10 @@ import Link from "next/link";
 
 import { getTrendingBooks } from "@/actions/book-actions";
 import { Button } from "@/components/ui/button";
-import { TrendingBooks } from "./dashboard/components/books/trending-books";
-import membersList from "../../public/images/members-private.jpg";
-import createList from "../../public/images/create-list.jpg";
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
+import createList from "../../public/images/create-list.jpg";
+import membersList from "../../public/images/members-private.jpg";
+import { TrendingBooks } from "./dashboard/components/books/trending-books";
 
 export default async function LandingPage() {
   const trendings = (await getTrendingBooks()).data;
@@ -40,42 +40,48 @@ export default async function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <SignedIn>
                   <Link href="/dashboard" passHref>
-                    <Button  size="lg" className="bg-primary hover:bg-primary/90">
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90"
+                    >
                       Comenzar ahora
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
 
                   <Link href="/books" passHref>
-                    <Button  size="lg" variant="outline">
+                    <Button size="lg" variant="outline">
                       Explorar catálogo
                     </Button>
                   </Link>
-                  </SignedIn>
+                </SignedIn>
 
-                  {/* Usuarios no autenticados abren Clerk y luego redirigen */}
-                  <SignedOut>
-                    <SignInButton
-                      mode="redirect"
-                      forceRedirectUrl="/dashboard"
-                      fallbackRedirectUrl="/dashboard"
+                {/* Usuarios no autenticados abren Clerk y luego redirigen */}
+                <SignedOut>
+                  <SignInButton
+                    mode="redirect"
+                    forceRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/dashboard"
+                  >
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90"
                     >
-                      <Button size="lg" className="bg-primary hover:bg-primary/90">
-                        Comenzar ahora
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </SignInButton>
+                      Comenzar ahora
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </SignInButton>
 
-                    <SignInButton
-                      mode="redirect"
-                      forceRedirectUrl="/books"
-                      fallbackRedirectUrl="/books"
-                    >
-                      <Button size="lg" variant="outline">
-                        Explorar catálogo
-                      </Button>
-                    </SignInButton>
-                  </SignedOut>
+                  <SignInButton
+                    mode="redirect"
+                    forceRedirectUrl="/books"
+                    fallbackRedirectUrl="/books"
+                  >
+                    <Button size="lg" variant="outline">
+                      Explorar catálogo
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
               </div>
             </div>
             <div className="md:w-1/2 relative">
@@ -236,26 +242,21 @@ export default async function LandingPage() {
           </p>
           <SignedOut>
             <SignUpButton
-            mode="redirect"
-            forceRedirectUrl="/dashboard"
-            fallbackRedirectUrl="/dashboard"
-          >
-            <Button
-              size="lg"
-              variant="secondary"
-              className="bg-background text-foreground hover:bg-background/90"
+              mode="redirect"
+              forceRedirectUrl="/dashboard"
+              fallbackRedirectUrl="/dashboard"
             >
-              Crear cuenta gratis
-            </Button>
-          </SignUpButton>
-        </SignedOut>
-          <p className="mt-4 text-primary-foreground/80">
-            No se requiere tarjeta de crédito. Cancela cuando quieras.
-          </p>
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-background text-foreground hover:bg-background/90"
+              >
+                Crear cuenta gratis
+              </Button>
+            </SignUpButton>
+          </SignedOut>
         </div>
       </section>
-
-      
     </div>
   );
 }

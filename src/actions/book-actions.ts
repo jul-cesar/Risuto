@@ -435,45 +435,132 @@ export const getGenres = async (): Promise<response<{ id: string; name: string }
 export const getBooksPaginated = async (
   page: number = 1,
   limit: number = 20,
-  searchTerm?: string
+  searchTerm?: string,
+  genreId?: string
 ) => {
   try {
     const offset = (page - 1) * limit;
 
-    // Primero, obtenemos el total de libros para saber si hay más resultados
-    const countQuery = db.select({ count: sql`count(*)` }).from(Books);
+    // Determinar si necesitamos hacer un join con la tabla de géneros
+    let countQuery;
     
-    if (searchTerm) {
-      countQuery.where(
-        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
-      );
+    if (genreId && searchTerm) {
+      // Si hay filtro por género y término de búsqueda
+      const searchCondition = sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`;
+      
+      countQuery = db
+        .select({ count: sql`COUNT(DISTINCT ${Books.id})` })
+        .from(Books)
+        .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+        .where(and(
+          eq(BookGenres.genre_id, genreId),
+          searchCondition
+        ));
+    } else if (genreId) {
+      // Solo filtro por género
+      countQuery = db
+        .select({ count: sql`COUNT(DISTINCT ${Books.id})` })
+        .from(Books)
+        .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+        .where(eq(BookGenres.genre_id, genreId));
+    } else if (searchTerm) {
+      // Solo filtro por término de búsqueda
+      const searchCondition = sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`;
+      
+      countQuery = db
+        .select({ count: sql`count(*)` })
+        .from(Books)
+        .where(searchCondition);
+    } else {
+      // Sin filtros
+      countQuery = db
+        .select({ count: sql`count(*)` })
+        .from(Books);
     }
     
     const [countResult] = await countQuery;
     const totalBooks = Number(countResult?.count || 0);
 
-    // Luego, obtenemos los libros paginados usando selectDistinct para evitar duplicados
-    const query = db
-      .selectDistinct({
-        id: Books.id,
-        title: Books.title,
-        author: Books.author,
-        synopsis: Books.synopsis,
-        cover_url: Books.cover_url,
-        is_trending: Books.is_trending,
+    // Construir la consulta para obtener los libros
+    let query;
+
+    // Aplicamos la misma lógica para la consulta de libros
+    if (genreId && searchTerm) {
+      // Si hay filtro por género y término de búsqueda
+      const searchCondition = sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`;
       
-        pagesInfo: Books.pagesInfo,
-        // Excluimos createdAt para reducir el tamaño de la respuesta
-      })
-      .from(Books)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(desc(Books.createdAt));
+      query = db
+        .selectDistinct({
+          id: Books.id,
+          title: Books.title,
+          author: Books.author,
+          synopsis: Books.synopsis,
+          cover_url: Books.cover_url,
+          is_trending: Books.is_trending,
+          pagesInfo: Books.pagesInfo,
+        })
+        .from(Books)
+        .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+        .where(and(
+          eq(BookGenres.genre_id, genreId),
+          searchCondition
+        ))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(Books.createdAt));
+    } else if (genreId) {
+      // Solo filtro por género
+      query = db
+        .selectDistinct({
+          id: Books.id,
+          title: Books.title,
+          author: Books.author,
+          synopsis: Books.synopsis,
+          cover_url: Books.cover_url,
+          is_trending: Books.is_trending,
+          pagesInfo: Books.pagesInfo,
+        })
+        .from(Books)
+        .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
+        .where(eq(BookGenres.genre_id, genreId))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(Books.createdAt));
+    } else if (searchTerm) {
+      // Solo filtro por término de búsqueda
+      const searchCondition = sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`;
       
-    if (searchTerm) {
-      query.where(
-        sql`lower(${Books.title}) LIKE ${`%${searchTerm.toLowerCase()}%`} OR lower(${Books.author}) LIKE ${`%${searchTerm.toLowerCase()}%`}`
-      );
+      query = db
+        .selectDistinct({
+          id: Books.id,
+          title: Books.title,
+          author: Books.author,
+          synopsis: Books.synopsis,
+          cover_url: Books.cover_url,
+          is_trending: Books.is_trending,
+          pagesInfo: Books.pagesInfo,
+        })
+        .from(Books)
+        .where(searchCondition)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(Books.createdAt));
+    } else {
+      // Sin filtros
+      query = db
+        .selectDistinct({
+          id: Books.id,
+          title: Books.title,
+          author: Books.author,
+          synopsis: Books.synopsis,
+          cover_url: Books.cover_url,
+          is_trending: Books.is_trending,
+          pagesInfo: Books.pagesInfo,
+        })
+        .from(Books)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(Books.createdAt));
     }
     
     const books = await query;
@@ -572,7 +659,7 @@ export const getBooksByGenreName = async (genreName: string): Promise<response<a
       .innerJoin(BookGenres, eq(Books.id, BookGenres.book_id))
       .where(eq(BookGenres.genre_id, genre.id))
       .orderBy(sql`RANDOM()`) // Orden aleatorio
-      .limit(30);
+      .limit(20);
 
     // Obtenemos los géneros para cada libro
     const bookIds = books.map(book => book.id);

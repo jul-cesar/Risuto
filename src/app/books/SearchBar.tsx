@@ -1,44 +1,51 @@
 "use client";
 
-import type React from "react";
-
+import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState } from "react";
 
 export function SearchBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
 
+  // Función para actualizar la URL con el término de búsqueda
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+
+      return params.toString();
+    },
+    [searchParams]
+  );
+
+  // Manejar la búsqueda cuando se envía el formulario
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (searchTerm) {
-      params.set("q", searchTerm);
-    } else {
-      params.delete("q");
-    }
-
-    router.push(`/books?${params.toString()}`);
+    router.push(`${pathname}?${createQueryString("q", searchTerm)}`);
   };
 
   return (
-    <form onSubmit={handleSearch} className="relative w-full max-w-md">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar libros..."
-          className="h-10 w-full rounded-md border  pl-10 pr-4 text-sm focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300"
-        />
-      </div>
-      <button type="submit" className="sr-only">
-        Buscar
-      </button>
+    <form
+      onSubmit={handleSearch}
+      className="relative w-full sm:w-80 flex-shrink-0"
+    >
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      <Input
+        type="search"
+        placeholder="Buscar libros o autores..."
+        className="pl-10 pr-4 py-2"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
     </form>
   );
 }
