@@ -17,7 +17,7 @@ function FormButton() {
     <Button type="submit" disabled={pending} className="relative">
       {pending ? (
         <>
-          <span className="opacity-0">Publicar</span>
+          <span className="opacity-0">Publish</span>
           <span className="absolute inset-0 flex items-center justify-center">
             <svg
               className="animate-spin h-5 w-5 text-white"
@@ -42,7 +42,7 @@ function FormButton() {
           </span>
         </>
       ) : (
-        "Publicar"
+        "Publish"
       )}
     </Button>
   );
@@ -114,14 +114,14 @@ export function CommentForm({
         htmlFor="new-comment"
         className="text-sm font-medium text-foreground"
       >
-        Añadir comentario
+        Add a comment
       </Label>
       <Textarea
         id="new-comment"
         name="text"
         value={newComment}
         onChange={(e) => setNewComment(e.target.value)}
-        placeholder="Escribe tu comentario..."
+        placeholder="Write a comment..."
         rows={3}
         className="resize-none"
         disabled={isSubmitting}

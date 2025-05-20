@@ -26,7 +26,7 @@ interface RelatedBooksProps {
 
 export function RelatedBooks({
   books,
-  title = "Libros relacionados",
+  title = "🤓 Related books",
 }: RelatedBooksProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);

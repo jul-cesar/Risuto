@@ -47,7 +47,7 @@ export default async function CommentSectionBook({
       {/* Listado de comentarios */}
       {comments?.length === 0 ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
-          No hay comentarios aún
+          No comments yet. Be the first to comment!
         </div>
       ) : (
         <div className="space-y-4">

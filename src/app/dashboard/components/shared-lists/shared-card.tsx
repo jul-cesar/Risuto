@@ -47,7 +47,7 @@ export function SharedCard({ organization }: { organization: any }) {
             </Avatar>
             <div>
               <p className="text-sm font-medium">{creatorFullName}</p>
-              <p className="text-xs text-muted-foreground">Creador</p>
+              <p className="text-xs text-muted-foreground">Created By</p>
             </div>
           </div>
           
