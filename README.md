@@ -37,7 +37,7 @@ Esta app te permite:
 
 ## 📸 Capturas de pantalla / GIFs
 
-![Pantalla de inicio](/screenshots/new-dashboard.gif)
+![Pantalla de inicio](/screenshots/dashboard-new.gif)
 *Pantalla principal con listado de libros*
 
 ---
@@ -69,7 +69,7 @@ Clerk se utiliza para manejar **usuarios**, **registro**, **login**, **protecci�
 
 2. **Webhooks**  
    - URL de webhook en `src/app/api/webhooks/`.
-   - Capturamos el evento `user.created` que emite **Clerk** para guardar al usuario en nuestra base de datos (Prisma).
+   - Capturamos el evento `user.created` que emite **Clerk** para guardar al usuario en nuestra base de datos (Turso).
 
 3. **Organizaciones dinámicas**  
    - Al crear una “lista privada”:
