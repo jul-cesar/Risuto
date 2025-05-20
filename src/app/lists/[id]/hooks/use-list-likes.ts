@@ -56,42 +56,49 @@ export default function useListLikes(listId: string, defaultReactionId: string) 
   })
 
   // 2. Mutation de "like" (POST)
-  const likeMutation = useMutation({
-    mutationFn: (reactionId: string) => postLike({ listId, reactionId }),
-    // Optimistic update antes de la llamada
-    onMutate: async (reactionId) => {
-      await queryClient.cancelQueries(['listLikes', listId])
-      const previous = queryClient.getQueryData<LikesResponse>(['listLikes', listId])
-      if (previous) {
-        // Asumiendo que ya tienes la info mínima del usuario en el cliente:
-        if (!user) {
-          return { previous };
+  const likeMutation = useMutation(
+    (reactionId: string) => postLike({ listId, reactionId }),
+    {
+      // Optimistic update antes de la llamada
+      onMutate: async (reactionId) => {
+        await queryClient.cancelQueries(['listLikes', listId])
+        const previous = queryClient.getQueryData<LikesResponse>(['listLikes', listId])
+        if (previous) {
+          // Asumiendo que ya tienes la info mínima del usuario en el cliente:
+          if (!user) {
+            return { previous };
+          }
+          const newLike: LikeWithClerkUser = {
+            id: 'temp-' + Date.now(),
+            list_id: listId,
+            user_id: user.id,
+            createdAt: new Date().toISOString(),
+            reaction: { id: reactionId, code: '', label: '', icon: '' }, 
+            user: {
+              id: user.id,
+              fullName: user.fullName ?? '',
+              username: user.username ?? '',
+              profileImageUrl: user.imageUrl ?? '',
+            },
+          }
+          queryClient.setQueryData<LikesResponse>(['listLikes', listId], {
+            count: previous.userLike ? previous.count : previous.count + 1,
+            likes: [...previous.likes, newLike],
+            userLike: newLike,
+          })
         }
-        const newLike: LikeWithClerkUser = {
-          id: 'temp-' + Date.now(),
-          list_id: listId,
-          user_id: user.id,
-          createdAt: new Date().toISOString(),
-          reaction: { id: reactionId, code: '', label: '', icon: '' }, 
-          user: user,
+        return { previous }
+      },
+      onError: (_err, _vars, context?: { previous?: LikesResponse }) => {
+        if (context?.previous) {
+          queryClient.setQueryData(['listLikes', listId], context.previous)
         }
-        queryClient.setQueryData<LikesResponse>(['listLikes', listId], {
-          count: previous.userLike ? previous.count : previous.count + 1,
-          likes: [...previous.likes, newLike],
-          userLike: newLike,
-        })
-      }
-      return { previous }
-    },
-    onError: (_err, _vars, context: any) => {
-      if (context?.previous) {
-        queryClient.setQueryData(['listLikes', listId], context.previous)
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries(['listLikes', listId])
-    },
-  })
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries(['listLikes', listId])
+      },
+    }
+  )
 
   // 3. Mutation de "unlike" (DELETE)
   const unlikeMutation = useMutation({
