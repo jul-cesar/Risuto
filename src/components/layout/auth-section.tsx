@@ -13,7 +13,9 @@ export async function AuthSection() {
 
   return (
     <div className="flex items-center gap-4">
-      <InvitationDropdown invitations={invitations} />
+      <SignedIn>
+        <InvitationDropdown invitations={invitations} />
+      </SignedIn>
       <ModeToggle />
       <SignedOut >
         <SignInButton 
