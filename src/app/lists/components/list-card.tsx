@@ -67,7 +67,7 @@ export const ListCard = ({ list }: any) => {
           <div className="flex items-center gap-2">
             <Avatar>
               <AvatarImage src={list?.user?.profileImageUrl} />
-              <AvatarFallback>{list?.user?.fullName.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{list?.user?.username}</AvatarFallback>
             </Avatar>
             <span className="text-sm">{list?.user?.username}</span>
           </div>

@@ -76,7 +76,6 @@ export default function useListLikes(listId: string, defaultReactionId: string) 
             reaction: { id: reactionId, code: '', label: '', icon: '' }, 
             user: {
               id: user.id,
-              fullName: user.fullName ?? '',
               username: user.username ?? '',
               profileImageUrl: user.imageUrl ?? '',
             },

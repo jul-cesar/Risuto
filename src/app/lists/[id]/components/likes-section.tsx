@@ -62,7 +62,7 @@ export function LikesSection({ listId }: LikesSectionProps) {
           <DialogHeader>
             <DialogTitle>Likes</DialogTitle>
             <DialogDescription>
-              Usuarios que dieron like a esta lista
+              Users who liked this list
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-64">
@@ -79,8 +79,7 @@ export function LikesSection({ listId }: LikesSectionProps) {
                     )}
                   </Avatar>
                   <div>
-                    <p className="font-medium">{user.user.fullName}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-medium text-muted-foreground">
                       @{user.user.username}
                     </p>
                   </div>

@@ -32,14 +32,14 @@ export default function AddToListButtonClient({ bookId, userLists }: Props) {
       try {
         await addBookToList(listId, bookId);
         router.refresh();
-        toast.success("Libro agregado", {
+        toast.success("Book added to list", {
           action: {
-            label: "Ver mi lista",
+            label: "Go to list",
             onClick: () => router.push(`/lists/${listId}`),
           },
         });
       } catch (err) {
-        toast.error("❌ No se pudo agregar. Intenta de nuevo.");
+        toast.error("❌ Error adding book to list");
         console.error(err);
       }
     });
@@ -61,7 +61,7 @@ export default function AddToListButtonClient({ bookId, userLists }: Props) {
           className="bg-primary text-primary-foreground font-mono font-bold px-6 py-2 rounded-md hover:bg-gray-200 transition"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
-          {isPending ? "Añadiendo..." : "Add to list"}
+          {isPending ? "Adding..." : "Add to list"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
