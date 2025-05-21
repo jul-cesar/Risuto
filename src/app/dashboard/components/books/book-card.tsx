@@ -9,13 +9,13 @@ export function BookCard({ book }: { book: Book | null }) {
     <Link href={`/books/${book.id}`} className="flex-shrink-0 w-48">
       <Card className="md:p-2  h-full flex flex-col transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer">
         <CardContent className="p-0 h-56 bg-zinc-800 rounded-t-lg overflow-hidden relative">
-          <Image
+          <img
             src={book.cover_url}
             alt={book.title}
-            fill
+            
             sizes="(max-width: 640px) 100vw, 12rem"
             className="object-cover"
-            priority
+            
           />
         </CardContent>
 

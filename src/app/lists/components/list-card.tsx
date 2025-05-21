@@ -36,7 +36,7 @@ export const ListCard = ({ list }: any) => {
                 key={book.id}
                 className="aspect-square bg-muted rounded-lg overflow-hidden"
               >
-                <Image
+                <img
                   src={book.cover_url}
                   alt={book.title}
                   width={200}

@@ -73,7 +73,7 @@ export function InvitationDropdown({ invitations }: InvitationDropdownProps) {
             className="flex flex-col items-start space-y-2 py-3 px-2 hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
             <div className="flex items-start gap-3 w-full">
-              <Image
+              <img
                 src={invitation.publicOrganizationData.image_url}
                 alt={invitation.publicOrganizationData.name}
                 width={40}

@@ -32,13 +32,13 @@ export function SharedCard({ organization }: { organization: any }) {
         </CardHeader>
         <CardContent>
           <div className="w-full h-40 relative">
-            <Image
+            <img
               src={image_url}
               alt={`Imagen de ${name}`}
-              fill
+              
               className="object-cover rounded-md"
               sizes="320px"
-              priority
+              
             />
           </div>    
         </CardContent>

@@ -98,12 +98,11 @@ export default async function LandingPage() {
                     hover:-rotate-2 hover:scale-105
                   "
                 >
-                  <Image
-                    src={createList}
+                  <img
+                    src={"/images/create-list.jpg"}
                     alt="Colección de libros"
-                    fill
-                    className="object-cover"
-                  />
+                    className="absolute inset-0 w-full h-full object-cover"
+                    />
                 </div>
 
                 {/* Imagen inferior izquierda: inclinada -3°, al hacer hover gira +3° y hace zoom */}
@@ -118,12 +117,11 @@ export default async function LandingPage() {
                     hover:rotate-3 hover:scale-105
                   "
                 >
-                  <Image
-                    src={membersList}
+                  <img
+                    src={"/images/members-private.jpg"}
                     alt="Leyendo libros"
-                    fill
-                    className="object-cover"
-                  />
+                    className="absolute inset-0 w-full h-full object-cover"
+                    />
                 </div>
               </div>
             </div>

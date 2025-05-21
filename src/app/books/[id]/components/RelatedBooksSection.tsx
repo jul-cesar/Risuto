@@ -95,10 +95,10 @@ export function RelatedBooks({
             >
               <Card className="h-full border overflow-hidden">
                 <div className="relative aspect-[2/3] w-full">
-                  <Image
+                  <img
                     src={book.cover_url || "/placeholder.svg"}
                     alt={book.title}
-                    fill
+                    
                     className="object-cover"
                   />
                 </div>

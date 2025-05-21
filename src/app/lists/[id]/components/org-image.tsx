@@ -20,7 +20,7 @@ export function OrgImage({ organization, isLoaded, isOwner }: { organization: an
   return (
     <div className="relative w-20 h-20">
   {organization?.imageUrl ? (
-    <Image
+    <img
       src={organization.imageUrl}
       alt="Organization Logo"
       width={80}

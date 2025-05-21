@@ -62,7 +62,7 @@ export function ListHeader({
         {/* Información del propietario de la lista */}
         {listOwner && (
             <div className="flex items-center gap-2">
-            <Image
+            <img
               src={listOwner.imageUrl ?? "/default-avatar.png"}
               alt={listOwner.username}
               width={32}
