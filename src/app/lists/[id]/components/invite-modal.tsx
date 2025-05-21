@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Mail, X } from 'lucide-react';
+import { Check, Copy, Loader2, Mail, X } from 'lucide-react';
 import { useOrganization, useOrganizationList } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { useSwitchOrganization } from '../hooks/use-switch-org';
@@ -29,6 +29,8 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
   const [success, setSuccess] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
   
   const { setActive } = useOrganizationList();
   
@@ -115,6 +117,8 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
 
   setIsSubmitting(true);
   setError('');
+  setInvitationUrl(null); // Reset invitation URL
+  setIsCopied(false);
   setSuccess('');
   const emailLower = email.toLowerCase();
 
@@ -142,6 +146,8 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
       throw new Error(error.error || 'Failed to invite');
     }
 
+    const data = await resp.json();
+    setInvitationUrl(data.invitation.url); // Save the invitation URL
     setSuccess(`Invitation sent to ${email}`);
     setEmail('');
     await loadMembers(); // refresca la lista de miembros/invitaciones
@@ -154,6 +160,18 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
     }
   } finally {
     setIsSubmitting(false);
+  }
+};
+
+const handleCopyUrl = async () => {
+  if (invitationUrl) {
+    try {
+      await navigator.clipboard.writeText(invitationUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset copy status after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
   }
 };
 
@@ -208,6 +226,32 @@ export function InviteModal({ list, onClose }: InviteModalProps) {
               
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
               {success && <p className="text-green-500 text-sm mt-2">{success}</p>}
+                
+                {invitationUrl && (
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="flex-1 p-2 bg-gray-100 rounded text-sm text-gray-700 truncate">
+                      {invitationUrl}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleCopyUrl}
+                      className="bg-secondary text-secondary-foreground py-2 px-3 rounded flex items-center gap-1"
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy URL
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+            
             </form>
             
             <div className="space-y-4">

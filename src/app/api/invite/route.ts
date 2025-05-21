@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       role: 'org:member',
       redirectUrl: redirectUrl,
     });
+    console.log('Invitation created:', invitation);
     return NextResponse.json({ invitation }, { status: 201 });
   } catch (err: unknown) {
     console.error(err);

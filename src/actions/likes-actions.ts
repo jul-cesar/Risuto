@@ -142,8 +142,7 @@ export const getLikesWithClerk = async (
         reaction: like.reaction,
         user: {
           id: u.id,
-          fullName: u.fullName ?? u.username ?? "Unknown",
-          username: u.username ?? "unknown",
+          username: u.username ?? "Unknown",
           profileImageUrl: u.imageUrl ?? "", 
         },
       };
@@ -190,7 +189,6 @@ export const getUserLikeForList = async (
     reaction: like.reaction,
     user: {
       id: u.id,
-      fullName: u.fullName ?? u.username ?? "Unknown",
       username: u.username ?? "unknown",
       profileImageUrl: u.imageUrl ?? "", 
     },

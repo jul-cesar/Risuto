@@ -22,17 +22,7 @@ export interface ListDetailPageProps {
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
   username: string;
-  listOwner:
-    | {
-        id: string;
-        clerk_user_id: string;
-        name: string;
-        avatar_url: string | null;
-        bio: string;
-        createdAt: string;
-        email: string;
-      }
-    | undefined;
+  listOwner: any;
 }
 
 export function ListDetailPage({

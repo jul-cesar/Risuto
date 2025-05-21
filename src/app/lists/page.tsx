@@ -15,7 +15,6 @@ type ListDataItem = NonNullable<
 interface ListWithBooksAndUser extends ListDataItem {
   user: {
     id: string;
-    fullName: string;
     username: string;
     profileImageUrl: string;
   };
@@ -33,8 +32,7 @@ export default async function ListsPage() {
         ...list,
         user: {
           id: u.id,
-          fullName: u.fullName ?? u.username ?? "Unknown",
-          username: u.username ?? "unknown",
+          username: u.username ?? "Unknown",
           profileImageUrl: u.imageUrl!,
         },
       };
@@ -58,8 +56,7 @@ export default async function ListsPage() {
         ...list,
         user: {
           id: u.id,
-          fullName: u.fullName ?? u.username ?? "Unknown",
-          username: u.username ?? "unknown",
+          username: u.username ?? "Unknown",
           profileImageUrl: u.imageUrl ?? "",
         },
       };

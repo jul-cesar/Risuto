@@ -25,17 +25,7 @@ interface ListHeaderProps {
   isOwner: boolean;
   copied: boolean;
   handleCopy: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  listOwner:
-    | {
-        id: string;
-        clerk_user_id: string;
-        name: string;
-        avatar_url: string | null;
-        bio: string;
-        createdAt: string;
-        email: string;
-      }
-    | undefined;
+  listOwner: any;
     isLoaded: boolean;
     organization: any;
 }
@@ -73,14 +63,14 @@ export function ListHeader({
         {listOwner && (
             <div className="flex items-center gap-2">
             <Image
-              src={listOwner.avatar_url ?? "/default-avatar.png"}
-              alt={listOwner.name}
+              src={listOwner.imageUrl ?? "/default-avatar.png"}
+              alt={listOwner.username}
               width={32}
               height={32}
               className="w-8 h-8 rounded-full"
             />
             <span className="text-sm text-gray-500">
-              {listOwner.name} (Owner)
+              {listOwner.username} (Owner)
             </span>
             </div>
         )}

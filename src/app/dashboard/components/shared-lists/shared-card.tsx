@@ -6,11 +6,14 @@ import Image from "next/image";
 
 export function SharedCard({ organization }: { organization: any }) {
 
+
   const { slug, name, image_url } = organization.organization;
-  const { first_name, profile_image_url, last_name  } = organization.public_user_data;
+  const { first_name, image_url: profile_image_url, user_name  } = organization.organization.created_by_user;
   const { role } = organization.role;
-  const creatorFullName = `${first_name} ${last_name}`;
-  const creatorInitials = `${first_name.charAt(0)}${last_name.charAt(0)}`;
+  const creatorFullName = `${user_name}`;
+  const creatorInitials = `${first_name}`;
+
+  console.log("SharedCard", organization);
 
   function getRoleBadgeClass(role: string): string {
     return role === "org:admin"

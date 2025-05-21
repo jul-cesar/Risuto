@@ -11,7 +11,6 @@ export interface LikeWithClerkUser {
   };
   user: {
     id: string;
-    fullName: string;
     username: string;
     profileImageUrl: string;
   };
